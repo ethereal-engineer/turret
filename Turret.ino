@@ -1,0 +1,539 @@
+#include <EnableInterrupt.h>  // Cleaner ways to do things
+#include <SD.h>
+#include <TMRpcm.h>           // Audio library
+#include <SPI.h>              // Audio library dependency
+
+// To debug or not to debug? - that, is the question
+#define DEBUG
+
+// Debug macro
+#ifdef DEBUG
+  #define dbg(x) Serial.println(x)
+#else
+  #define dbg(x) void(x)
+#endif
+
+// Helper macro for readability
+#define MINS_TO_MS(mins) mins * 60000
+
+// There might be a proper one - check later
+#define MAX_UNSIGNED_LONG 0xFFFFFFFF
+// Minimum light level reading that keeps us in day mode (0-1024)
+#define MINIMUM_DAY_MODE_AMBIENT_LIGHT_LEVEL 100
+
+/* Error Codes */
+#define ERROR_SD_INIT_FAIL -1
+#define ERROR_SD_OPEN_FAIL -2
+#define ERROR_SD_EMPTY_DIRECTORY -4
+#define ERROR_SD_UNKNOWN_FILE_ERROR -8
+
+/* Pins */
+
+// SD Card (stores the audio clips)
+
+#define PIN_SD_CHIP_SELECT 10
+#define PIN_SD_DATA_IN 11
+#define PIN_SD_DATA_OUT 12
+#define PIN_SD_CLOCK 13
+
+// RGB LED Eye
+
+#define PIN_RGB_EYE_DATA 5
+#define PIN_RGB_EYE_CLOCK 6
+
+// Speaker
+
+#define PIN_AUDIO_OUT 9
+
+// Lights
+
+#define PIN_LIGHTS 3
+
+// PIR
+
+#define PIN_MOTION_DETECTOR 2
+
+// CDS/LRD-based ambient light level input
+
+#define PIN_ANALOG_AMBIENT_LIGHT A0
+
+// Unused PIN for random seed generation
+
+#define PIN_UNUSED_ANALOG_FOR_RANDOM_SEED A1
+
+// Classes (split files later)
+
+/* RGBLED - A quick class for driving RGB LEDs via a WS-something chip */
+/* The WS-Whatever chip can handle data transfer speeds of up to 25MHz, so no delays are needed during data transmission */
+
+#define SIGNAL_DATA_DELAY 0.5
+
+class RGBLED {
+
+  private:
+  
+  short _pinClock, _pinData;
+
+  // Private Functions
+
+  /* prepareForData()
+   * The WS-whatever chip requires the clock to drop low for this period to signal new data */
+
+  void prepareForData() {
+    digitalWrite(_pinClock, LOW);
+    delay(SIGNAL_DATA_DELAY);
+  }
+  
+  void cycleClock(){
+    digitalWrite(_pinClock, LOW);
+    digitalWrite(_pinClock, HIGH);
+  }
+
+  public:
+
+  void begin(short pinData, short pinClock) {
+    _pinData = pinData;
+    _pinClock = pinClock;
+    pinMode(_pinData, OUTPUT);
+    pinMode(_pinClock, OUTPUT);
+  }
+
+  void setColor(unsigned long color) {
+    prepareForData();
+    for (int i = 23; i >= 0; i--) {
+      digitalWrite(_pinData, bitRead(color, i));
+      cycleClock();
+    }
+    dbg("Set colour to: " + String(color, HEX));
+  }
+  
+};
+
+/* Mosfet-controlled variable power device */
+
+/* The PWM outputs generated on pins 5 and 6 will have higher-than-expected duty cycles. 
+   This is because of interactions with the millis() and delay() functions, which share 
+   the same internal timer used to generate those PWM outputs. This will be noticed 
+   mostly on low duty-cycle settings (e.g 0 - 10) and may result in a value of 0 not 
+   fully turning off the output on pins 5 and 6. */
+   
+class PWMPoweredDevice {
+  
+  private:
+  
+  short _pin;        // control pin connected to mosfet gate
+  float _power;      // value between 0 and 1 - fractional power
+  bool  _on;         // allows power level to be kept and restored on and off
+
+  void updatePWM() {
+    short dutyCycle = round(_power * 255) * _on;
+    analogWrite(_pin, dutyCycle);
+    dbg("analogWrite to pin " + String(_pin, DEC) + ": " + String(dutyCycle, DEC));
+  }
+
+  public:
+
+  void begin(short pin) {
+    _pin = pin;
+    _power = 1.0;
+    turnOff();
+  }
+
+  void turnOn() {
+    if (_on) { return; }
+    _on = true;
+    updatePWM();
+  }
+
+  void turnOff() {
+    if (!_on) { return; }
+    _on = false;
+    updatePWM();
+  }
+
+  bool isOn() {
+    return _on;
+  }
+
+  float power() {
+    return _power;
+  }
+
+  void setPower(float power) {
+    _power = max(min(power, 1), 0);
+    updatePWM();
+  }
+};
+
+/* Enums */
+
+/* TurretState - the states of the turret's main finite state automata */
+
+enum TurretState {
+  tsInitialising,   // Starting up
+  tsSleeping,       // Waiting for prey
+  tsActive,         // Target acquired
+  tsSearching,      // Searching for lost target
+  tsAutoSearching,   // Anybody there?
+  tsCount           // Not a state - a count of number of states ;) (there might be a better way)
+} turretState = tsInitialising;
+
+/* OperationMode - different modes depending on certain conditions or options */
+
+enum OperationMode {
+  omUnknown,
+  omNight,
+  omDay
+} operationMode = omUnknown;
+
+/* EyeColor - colours of the eye for each state or mode or action taken 
+   (these aren't linked DIRECTLY to TurretState because we may want to later
+    deviate based on day and night etc) - writing this in the car on the way to
+    Braidwood Grandparents Day right now. Loving it! */
+
+enum EyeColor {
+  ecInitialising = 0xFFFFFF, // A rainbow blotch - it's pretty, but good to see all the LEDs are working
+  ecSleeping = 0x222222, // A dim rainbow blotch
+  ecActive = 0xFF0000, // Hot alert alarm red
+  ecSearching = 0x0000FF, // Blue - are you still there?
+  ecAutoSearching = 0xFF00FF // Lonely purple
+};
+
+/* Globals */
+
+TMRpcm            audio;  // Audio output using PWM
+RGBLED            eye;    // RGB LED Eye to set the mood
+PWMPoweredDevice  lights; // "Payload" or "product", as the turret calls it - very bright lights
+
+// Time references use internal millis() counter (since last restart) - which should be enough...?
+
+unsigned long timeOfLastStateChange     = MAX_UNSIGNED_LONG; // Used to check how long we've been in this state
+unsigned long timeOfLastMotionDetection = MAX_UNSIGNED_LONG; // Used to check how long since last motion was detected
+
+// TurretState to Sound Path Array
+char *soundPaths [tsCount] = {
+  "/",
+  "/RETIRE/",
+  "/ACTIVE/",
+  "/SEARCH/",
+  "/AUTOSEARCH/"
+};
+
+// Other support sounds
+static char soundFxActive[]   = "/FX/ACTIVE";
+static char soundFxAlert[]    = "/FX/ALERT";
+static char soundFxDeploy[]   = "/FX/DEPLOY";
+static char soundFxPing[]     = "/FX/PING";
+static char soundFxRetract[]  = "/FX/RETRACT";
+
+// Support Functions
+
+/* asciiToHex - Convert single ascii lowercase characters into hex value shorts */
+
+short asciiToHex(char ascii) {
+  
+  if (ascii < 48) { return 0; }
+  if (ascii > 102) { return 0; }
+  if (ascii > 57 && ascii < 97) { return 0; }
+
+  if (ascii < 97) {
+    // numbers
+    return ascii - 48;    
+  } else {
+    // letters
+    return ascii - 87;
+  }
+}
+
+/* eyeColorForState - map turret states to eye colour */
+EyeColor eyeColorForState(TurretState state) {
+  switch (state) {
+    case tsInitialising:  return ecInitialising;
+    case tsSleeping:      return ecSleeping;
+    case tsActive:        return ecActive;
+    case tsSearching:     return ecSearching;
+    case tsAutoSearching: return ecAutoSearching;
+  }
+}
+
+/* State timeout durations in milliseconds */
+
+unsigned long stateTimeout[tsCount] = {
+    MINS_TO_MS(0),    // tsInitialising
+    MINS_TO_MS(15),   // tsSleeping
+    MINS_TO_MS(5),    // tsActive
+    MINS_TO_MS(1),    // tsSearching   
+    MINS_TO_MS(5),    // tsAutoSearching
+};
+
+/* randomize - Shuffle up our random order */
+
+void randomize() {
+  randomSeed(analogRead(PIN_UNUSED_ANALOG_FOR_RANDOM_SEED));
+  dbg("Randomised OK");
+}
+
+/* Returns a random full file path from a base path on the SD card */
+
+char *randomFilenameAtPath(char *path) {
+  File directory = SD.open(path, FILE_READ);
+  if (!directory) {
+    Serial.println("ERROR: Unable to open path \"" + String(path) + "\". Check card and files and names."); 
+    exit(ERROR_SD_OPEN_FAIL); // Bail
+  }
+
+  short fileCount = 0;
+
+  // Optimised for least amount of dynamic allocation (a bit yuck),
+  // we run through once to get the count, and then a second time
+  // to grab our filename.
+  
+  while (true) {
+    File entry = directory.openNextFile();
+    if (!entry) { break; } // No more files
+    if (entry.isDirectory()) { continue; }; // Skip subdirectories
+    fileCount++;
+    entry.close();
+  }
+
+  if (fileCount == 0) {
+    Serial.println("ERROR: No files at path \"" + String(path) + "\". Check card and files and names."); 
+    exit(ERROR_SD_EMPTY_DIRECTORY); // Bail
+  }
+
+  // Rewind and start the file listing again
+  directory.rewindDirectory();
+
+  // The index of choice is...
+  short index = random() % fileCount;
+
+  // Skip all the files we don't want
+  for (int i = 0; i < index; i++) {
+    File entry = directory.openNextFile();
+    if (!entry) {
+      Serial.println("ERROR: Ran out of files while seeking #" + String(index, DEC) + " at \"" + path + "\". Huh?!."); 
+      exit(ERROR_SD_UNKNOWN_FILE_ERROR); // Bail
+    }
+    if (entry.isDirectory()) { continue; }; // Skip subdirectories
+    entry.close();
+  }
+
+  // Okay - we're up to the file we actually want info on
+  File randomEntry = directory.openNextFile();
+  if (!randomEntry) {
+      Serial.println("ERROR: Couldn't open the chosen file while seeking #" + String(index, DEC) + " at \"" + path + "\". Huh?!."); 
+      exit(ERROR_SD_UNKNOWN_FILE_ERROR); // Bail
+  }
+
+  char *filename = randomEntry.name();
+
+  dbg("Chose random file" + String(filename) + " from path " + String(path));
+  
+  randomEntry.close();
+  
+  directory.rewindDirectory();
+  directory.close();
+
+  // Finally, return the file name
+  return filename;
+}
+
+void resetStateChangeTimer() {
+  timeOfLastStateChange = millis();
+  dbg("State change timer was reset");
+}
+
+// Playback Function
+
+void playSound(char *name) {
+  dbg("Beginning playback of sound: " + String(name));
+  audio.play(name);
+  while (audio.isPlaying()) {
+    delay(100);
+  }
+  dbg("Finished playback of sound: " + String(name));
+}
+
+// Ambient Light Level Measurement
+
+unsigned int getAmbientLightLevel() {
+  unsigned int level = analogRead(PIN_ANALOG_AMBIENT_LIGHT);
+  dbg("Got ambient light level: " + String(level, DEC));
+  return level;
+}
+
+// Callback Functions
+
+void motionWasDetected() {
+  // Update the time of last motion detected
+  // This routine uses interrupts so no Serial/dbg use in here!
+  timeOfLastMotionDetection = millis();
+}
+
+void turretStateWillChange(TurretState toState) {
+  // Play preparation sounds
+  if (toState == tsActive) {
+    playSound(soundFxActive);
+  }
+  if (turretState == tsSleeping) {
+    playSound(soundFxDeploy);
+  }
+}
+
+void turretStateDidChange(TurretState fromState) {
+  // Update the time of last state change
+  resetStateChangeTimer();
+  // Update eye colour to new state colour
+  eye.setColor(eyeColorForState(turretState));
+  // Play new state sound
+  playSound(randomFilenameAtPath(soundPaths[turretState]));
+  // If state is sleep, play retract fx and turn off any lights
+  if (turretState == tsSleeping) {
+    lights.turnOff();
+    playSound(soundFxRetract);
+  }
+  // If state is active and it's night time,
+  // light 'em up!
+  if (turretState == tsActive && operationMode == omNight) {
+    lights.turnOn();
+  }
+}
+
+void operationModeWillChange(OperationMode toMode) {
+  // At this point, we randomise our audio responses
+  randomize();
+}
+
+void operationModeDidChange(OperationMode fromMode) {
+  
+}
+
+// Mode Change Functions
+
+bool shouldTimeoutSansMotion() {
+  bool doTimeout = (millis() - timeOfLastStateChange > stateTimeout[turretState]);
+  if (doTimeout) {
+    dbg("Turret state timeout reached");
+  }
+  return doTimeout;
+}
+
+void enterTurretState(TurretState state) {
+  if (state == turretState) { return; }
+  TurretState old = turretState;
+  dbg("Turret state will change to " + String(state, DEC) + " from " + String(old, DEC));
+  turretStateWillChange(state);
+  turretState = state;
+  turretStateDidChange(old);
+  dbg("Turret state did change to " + String(state, DEC) + " from " + String(old, DEC));
+}
+
+void enterOperationMode(OperationMode mode) {
+  if (mode == operationMode) { return; }
+  OperationMode old = operationMode;
+  dbg("Operation mode will change to " + String(mode, DEC) + " from " + String(old, DEC));
+  operationModeWillChange(mode);
+  operationMode = mode;
+  operationModeDidChange(old);
+  dbg("Operation mode did change to " + String(mode, DEC) + " from " + String(old, DEC));
+}
+
+// Main
+
+void setup(){
+  // Configure "THE EYE"
+  eye.begin(PIN_RGB_EYE_CLOCK, PIN_RGB_EYE_DATA);
+  // Configure audio output
+  audio.speakerPin = PIN_AUDIO_OUT; // PWM output is pin 9 for a UNO
+  audio.quality(1);                 // Use oversampling function for best quality
+  // Configure the "product"
+  lights.begin(PIN_LIGHTS);
+  // Configure the PIR
+  pinMode(PIN_MOTION_DETECTOR, INPUT_PULLUP);
+  enableInterrupt(PIN_MOTION_DETECTOR, motionWasDetected, RISING);
+  // Debugging
+  Serial.begin(9600);
+  // Configure SD Card
+  if (!SD.begin(PIN_SD_CHIP_SELECT)) {
+    Serial.println("ERROR: Unable to initialise SD card. Check card and pin connections."); 
+    exit(ERROR_SD_INIT_FAIL); // Bail
+  }
+}
+
+void loop(){  
+  // Continuously looping and evaluating which state to enter
+  if (getAmbientLightLevel() >= MINIMUM_DAY_MODE_AMBIENT_LIGHT_LEVEL) {
+    // add a delay to how often we can change between day and night modes if needed
+    enterOperationMode(omDay);
+  } else {
+    enterOperationMode(omNight);
+  }
+
+  #ifdef DEBUG
+    static unsigned long mostRecentMotionDetected = MAX_UNSIGNED_LONG;
+    if (mostRecentMotionDetected != timeOfLastMotionDetection) {
+      mostRecentMotionDetected = timeOfLastMotionDetection;
+      dbg("Motion has been detected at millis = " + String(timeOfLastMotionDetection, DEC));
+    }
+  #endif
+
+  switch (turretState) {
+    case tsInitialising:
+      // What to do here...?
+      // Start asleep
+      enterTurretState(tsSleeping);
+      break;
+    case tsSleeping:
+      // If motion detected since state change, enter active state
+      if (timeOfLastStateChange < timeOfLastMotionDetection) {
+        enterTurretState(tsActive);
+        break;
+      } 
+      // If we're in night mode, there's nothing to do because we don't autosearch
+      // at night
+      if (operationMode == omNight) { 
+        break; 
+      }
+      // if no motion for a long time (and not in night mode), enter autosearching state
+      if (shouldTimeoutSansMotion()) {
+        enterTurretState(tsAutoSearching);
+      }
+      break;
+    case tsActive:
+      // If motion is detected, ping to confirm
+      if (timeOfLastStateChange < timeOfLastMotionDetection) {
+        playSound(soundFxPing);
+        resetStateChangeTimer(); // Essentially re-entering the active state without sound or colour changes...
+        break;
+      } 
+      // If no motion detected for a while, enter searching state
+      if (shouldTimeoutSansMotion()) {
+        enterTurretState(tsSearching);
+      }
+      break;
+    case tsSearching:
+      // If motion detected enter active state
+      if (timeOfLastStateChange < timeOfLastMotionDetection) {
+        enterTurretState(tsActive);
+        break;
+      } 
+      // If no motion detected for a while DEF, enter sleep state
+      if (shouldTimeoutSansMotion()) {
+        enterTurretState(tsSleeping);
+      }
+      break;
+    case tsAutoSearching:
+      // If motion detected enter active state
+      if (timeOfLastStateChange < timeOfLastMotionDetection) {
+        enterTurretState(tsActive);
+        break;
+      } 
+      // If no motion detected for a while DEF, enter sleep state
+      if (shouldTimeoutSansMotion()) {
+        enterTurretState(tsSleeping);
+      }
+      break;
+  }
+
+  // LATER: Add ping in search state every 15 seconds or so
+}
