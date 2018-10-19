@@ -1,0 +1,397 @@
+EESchema Schematic File Version 4
+LIBS:Turret-cache
+EELAYER 26 0
+EELAYER END
+$Descr A4 11693 8268
+encoding utf-8
+Sheet 1 4
+Title ""
+Date ""
+Rev ""
+Comp ""
+Comment1 ""
+Comment2 ""
+Comment3 ""
+Comment4 ""
+$EndDescr
+$Comp
+L MCU_Module:Arduino_UNO_R3 A1
+U 1 1 5BC18960
+P 2150 2400
+F 0 "A1" H 2150 3578 50  0000 C CNN
+F 1 "Arduino_UNO_R3" H 2150 3487 50  0000 C CNN
+F 2 "Module:Arduino_UNO_R3" H 2300 1350 50  0001 L CNN
+F 3 "https://www.arduino.cc/en/Main/arduinoBoardUno" H 1950 3450 50  0001 C CNN
+	1    2150 2400
+	1    0    0    -1  
+$EndComp
+$Comp
+L LED:LED_Cree_XHP50_6V LED_PANEL1
+U 1 1 5BC18FD9
+P 6950 2050
+F 0 "LED_PANEL1" H 6950 2536 50  0000 C CNN
+F 1 "24_LED_Panel_5V" H 6950 2445 50  0000 C CNN
+F 2 "Connector_Wire:SolderWirePad_1x02_P3.81mm_Drill1.2mm" H 6950 2575 50  0001 C CNN
+F 3 "http://www.cree.com/%7E/media/Files/Cree/LED%20Components%20and%20Modules/XLamp/Data%20and%20Binning/ds%20XHP50.pdf" H 6875 1950 50  0001 C CNN
+	1    6950 2050
+	1    0    0    -1  
+$EndComp
+$Comp
+L LED:LED_Cree_XHP50_6V LED_PANEL2
+U 1 1 5BC1905B
+P 6900 3100
+F 0 "LED_PANEL2" H 6900 3586 50  0000 C CNN
+F 1 "24_LED_Panel_5V" H 6900 3495 50  0000 C CNN
+F 2 "Connector_Wire:SolderWirePad_1x02_P3.81mm_Drill1.2mm" H 6900 3625 50  0001 C CNN
+F 3 "http://www.cree.com/%7E/media/Files/Cree/LED%20Components%20and%20Modules/XLamp/Data%20and%20Binning/ds%20XHP50.pdf" H 6825 3000 50  0001 C CNN
+	1    6900 3100
+	1    0    0    -1  
+$EndComp
+$Comp
+L Device:Speaker SPK1
+U 1 1 5BC19126
+P 6600 4600
+F 0 "SPK1" H 6770 4596 50  0000 L CNN
+F 1 "Speaker" H 6770 4505 50  0000 L CNN
+F 2 "Connector_Wire:SolderWirePad_1x02_P3.81mm_Drill1.2mm" H 6600 4400 50  0001 C CNN
+F 3 "~" H 6590 4550 50  0001 C CNN
+	1    6600 4600
+	1    0    0    -1  
+$EndComp
+$Comp
+L sensors:PIR_Motion_Sensor PIR1
+U 1 1 5BC198E5
+P 8000 1850
+F 0 "PIR1" H 8378 2247 60  0000 L CNN
+F 1 "PIR_Motion_Sensor" H 8378 2141 60  0000 L CNN
+F 2 "Connector_Wire:SolderWirePad_1x03_P3.175mm_Drill0.8mm" H 8000 2650 60  0001 C CNN
+F 3 "" H 8000 2650 60  0000 C CNN
+	1    8000 1850
+	1    0    0    -1  
+$EndComp
+$Comp
+L Transistor_FET:IRLZ44N Q1
+U 1 1 5BC19B1A
+P 5650 3050
+F 0 "Q1" H 5855 3096 50  0000 L CNN
+F 1 "IRLZ44N" H 5855 3005 50  0000 L CNN
+F 2 "Package_TO_SOT_THT:TO-220-3_Vertical" H 5900 2975 50  0001 L CIN
+F 3 "http://www.irf.com/product-info/datasheets/data/irlz44n.pdf" H 5650 3050 50  0001 L CNN
+	1    5650 3050
+	1    0    0    -1  
+$EndComp
+$Comp
+L power:+5V #PWR0101
+U 1 1 5BC19C34
+P 2350 1050
+F 0 "#PWR0101" H 2350 900 50  0001 C CNN
+F 1 "+5V" H 2365 1223 50  0000 C CNN
+F 2 "" H 2350 1050 50  0001 C CNN
+F 3 "" H 2350 1050 50  0001 C CNN
+	1    2350 1050
+	1    0    0    -1  
+$EndComp
+$Sheet
+S 3050 3300 700  500 
+U 5BC1A062
+F0 "CDSTrigger" 50
+F1 "CDSTrigger.sch" 50
+F2 "VCC" I L 3050 3550 50 
+F3 "GND" I L 3050 3700 50 
+F4 "MEASUREMENT" I L 3050 3400 50 
+$EndSheet
+$Sheet
+S 5050 4450 1200 450 
+U 5BC1A12F
+F0 "Audio Amplifier" 50
+F1 "AudioAmplifier.sch" 50
+F2 "AUDIO_INPUT" I L 5050 4600 50 
+F3 "VCC" I L 5050 4700 50 
+F4 "GND" I L 5050 4800 50 
+F5 "AUDIO_OUT_+" I R 6250 4600 50 
+F6 "AUDIO_OUT_-" I R 6250 4700 50 
+$EndSheet
+Wire Wire Line
+	2350 1400 2350 1050
+Wire Wire Line
+	2050 3500 2050 3750
+Wire Wire Line
+	2050 3750 2150 3750
+Wire Wire Line
+	2150 3500 2150 3750
+Connection ~ 2150 3750
+Wire Wire Line
+	2250 3500 2250 3750
+Wire Wire Line
+	2250 3750 2150 3750
+$Comp
+L power:Earth #PWR0102
+U 1 1 5BC1A9CA
+P 2600 4100
+F 0 "#PWR0102" H 2600 3850 50  0001 C CNN
+F 1 "Earth" H 2600 3950 50  0001 C CNN
+F 2 "" H 2600 4100 50  0001 C CNN
+F 3 "~" H 2600 4100 50  0001 C CNN
+	1    2600 4100
+	1    0    0    -1  
+$EndComp
+$Comp
+L power:Earth #PWR0103
+U 1 1 5BC1AAE2
+P 2150 3750
+F 0 "#PWR0103" H 2150 3500 50  0001 C CNN
+F 1 "Earth" H 2150 3600 50  0001 C CNN
+F 2 "" H 2150 3750 50  0001 C CNN
+F 3 "~" H 2150 3750 50  0001 C CNN
+	1    2150 3750
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	2600 4100 2600 3700
+Wire Wire Line
+	2600 3700 3050 3700
+$Comp
+L power:Earth #PWR0104
+U 1 1 5BC1AD6D
+P 4850 5000
+F 0 "#PWR0104" H 4850 4750 50  0001 C CNN
+F 1 "Earth" H 4850 4850 50  0001 C CNN
+F 2 "" H 4850 5000 50  0001 C CNN
+F 3 "~" H 4850 5000 50  0001 C CNN
+	1    4850 5000
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	5050 4800 4850 4800
+Wire Wire Line
+	4850 4800 4850 5000
+Wire Wire Line
+	6250 4600 6400 4600
+Wire Wire Line
+	6250 4700 6400 4700
+$Comp
+L power:+5V #PWR0105
+U 1 1 5BC1B463
+P 2850 3300
+F 0 "#PWR0105" H 2850 3150 50  0001 C CNN
+F 1 "+5V" H 2865 3473 50  0000 C CNN
+F 2 "" H 2850 3300 50  0001 C CNN
+F 3 "" H 2850 3300 50  0001 C CNN
+	1    2850 3300
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	2850 3300 2850 3550
+Wire Wire Line
+	2850 3550 3050 3550
+Wire Wire Line
+	3050 1150 1250 1150
+Wire Wire Line
+	1250 1150 1250 2400
+Wire Wire Line
+	1250 2400 1650 2400
+Wire Wire Line
+	1400 750  1400 2300
+Wire Wire Line
+	1400 2300 1650 2300
+$Comp
+L power:+5V #PWR0107
+U 1 1 5BC2ECFD
+P 5850 2000
+F 0 "#PWR0107" H 5850 1850 50  0001 C CNN
+F 1 "+5V" H 5865 2173 50  0000 C CNN
+F 2 "" H 5850 2000 50  0001 C CNN
+F 3 "" H 5850 2000 50  0001 C CNN
+	1    5850 2000
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	5850 2000 6700 2000
+Wire Wire Line
+	6700 2000 6700 2050
+Wire Wire Line
+	6700 2050 6700 3100
+Wire Wire Line
+	6700 3100 6650 3100
+Wire Wire Line
+	7200 2050 7200 3100
+Wire Wire Line
+	7200 3100 7150 3100
+Wire Wire Line
+	7150 3100 7150 3600
+Wire Wire Line
+	7150 3600 6250 3600
+Wire Wire Line
+	6250 3600 6250 2600
+Wire Wire Line
+	6250 2600 5750 2600
+Wire Wire Line
+	5750 2600 5750 2850
+$Comp
+L power:Earth #PWR0108
+U 1 1 5BC30EA6
+P 5750 3450
+F 0 "#PWR0108" H 5750 3200 50  0001 C CNN
+F 1 "Earth" H 5750 3300 50  0001 C CNN
+F 2 "" H 5750 3450 50  0001 C CNN
+F 3 "~" H 5750 3450 50  0001 C CNN
+	1    5750 3450
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	5750 3250 5750 3450
+Text HLabel 1350 2800 0    50   Input ~ 0
+SD_CHIP_SELECT
+Wire Wire Line
+	1350 2800 1650 2800
+Text HLabel 1300 2900 0    50   Input ~ 0
+SD_DATA_IN
+Text HLabel 1300 3000 0    50   Input ~ 0
+SD_DATA_OUT
+Text HLabel 1300 3100 0    50   Input ~ 0
+SD_CLK
+Wire Wire Line
+	1300 3100 1650 3100
+Wire Wire Line
+	1300 2900 1650 2900
+Wire Wire Line
+	1300 3000 1650 3000
+Wire Wire Line
+	1650 2700 1500 2700
+Wire Wire Line
+	1500 2700 1500 4600
+Wire Wire Line
+	1500 4600 5050 4600
+$Comp
+L power:+5V #PWR0109
+U 1 1 5BC34E17
+P 4850 4100
+F 0 "#PWR0109" H 4850 3950 50  0001 C CNN
+F 1 "+5V" H 4865 4273 50  0000 C CNN
+F 2 "" H 4850 4100 50  0001 C CNN
+F 3 "" H 4850 4100 50  0001 C CNN
+	1    4850 4100
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	4850 4100 4850 4700
+Wire Wire Line
+	4850 4700 5050 4700
+$Comp
+L power:Earth #PWR0110
+U 1 1 5BC35D14
+P 7900 2150
+F 0 "#PWR0110" H 7900 1900 50  0001 C CNN
+F 1 "Earth" H 7900 2000 50  0001 C CNN
+F 2 "" H 7900 2150 50  0001 C CNN
+F 3 "~" H 7900 2150 50  0001 C CNN
+	1    7900 2150
+	1    0    0    -1  
+$EndComp
+$Comp
+L power:+5V #PWR0111
+U 1 1 5BC35D55
+P 8100 850
+F 0 "#PWR0111" H 8100 700 50  0001 C CNN
+F 1 "+5V" H 8115 1023 50  0000 C CNN
+F 2 "" H 8100 850 50  0001 C CNN
+F 3 "" H 8100 850 50  0001 C CNN
+	1    8100 850 
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	7900 1850 7900 2150
+Wire Wire Line
+	8100 1850 8500 1850
+Wire Wire Line
+	8500 1850 8500 850 
+Wire Wire Line
+	8500 850  8100 850 
+Wire Wire Line
+	1650 2000 1550 2000
+Wire Wire Line
+	1550 2000 1550 600 
+Wire Wire Line
+	1550 600  7500 600 
+Wire Wire Line
+	7500 600  7500 2050
+Wire Wire Line
+	7500 2050 8000 2050
+Wire Wire Line
+	8000 2050 8000 1850
+Wire Wire Line
+	5450 3050 850  3050
+$Comp
+L power:Earth #PWR0112
+U 1 1 5BC3BEF0
+P 4250 2650
+F 0 "#PWR0112" H 4250 2400 50  0001 C CNN
+F 1 "Earth" H 4250 2500 50  0001 C CNN
+F 2 "" H 4250 2650 50  0001 C CNN
+F 3 "~" H 4250 2650 50  0001 C CNN
+	1    4250 2650
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	3050 3400 2750 3400
+Wire Wire Line
+	2750 3400 2750 2400
+Wire Wire Line
+	2750 2400 2650 2400
+Wire Wire Line
+	850  2100 1650 2100
+Wire Wire Line
+	850  2100 850  3050
+Connection ~ 7150 3100
+Connection ~ 6700 2050
+$Sheet
+S 3600 850  550  500 
+U 5BCB1E2A
+F0 "RGBLED" 50
+F1 "RGBLED.sch" 50
+F2 "DIN" I L 3600 1150 50 
+F3 "CLK" I L 3600 1050 50 
+F4 "VCC" I L 3600 950 50 
+F5 "GND" I L 3600 1250 50 
+$EndSheet
+Wire Wire Line
+	3300 750  3300 1150
+Wire Wire Line
+	3300 1150 3600 1150
+Wire Wire Line
+	1400 750  3300 750 
+Wire Wire Line
+	3050 1150 3050 1050
+Wire Wire Line
+	3050 1050 3600 1050
+$Comp
+L power:Earth #PWR0106
+U 1 1 5BCB6EFF
+P 3450 1500
+F 0 "#PWR0106" H 3450 1250 50  0001 C CNN
+F 1 "Earth" H 3450 1350 50  0001 C CNN
+F 2 "" H 3450 1500 50  0001 C CNN
+F 3 "~" H 3450 1500 50  0001 C CNN
+	1    3450 1500
+	1    0    0    -1  
+$EndComp
+$Comp
+L power:+5V #PWR0113
+U 1 1 5BCB6F5D
+P 3450 850
+F 0 "#PWR0113" H 3450 700 50  0001 C CNN
+F 1 "+5V" H 3465 1023 50  0000 C CNN
+F 2 "" H 3450 850 50  0001 C CNN
+F 3 "" H 3450 850 50  0001 C CNN
+	1    3450 850 
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	3450 850  3450 950 
+Wire Wire Line
+	3450 950  3600 950 
+Wire Wire Line
+	3450 1500 3450 1250
+Wire Wire Line
+	3450 1250 3600 1250
+$EndSCHEMATC
