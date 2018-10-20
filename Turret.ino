@@ -6,6 +6,11 @@
 
 #include <assert.h>
 
+// Fix an existing bug in definitions somewhere
+#ifndef FPSTR
+#define FPSTR(pstr_pointer) (reinterpret_cast<const __FlashStringHelper *>(pstr_pointer))
+#endif
+
 // To debug or not to debug? - that, is the question
 #define DEBUG
 
@@ -219,23 +224,30 @@ PWMPoweredDevice  lights; // "Payload" or "product", as the turret calls it - ve
 // Time references use internal millis() counter (since last restart) - which should be enough...?
 
 unsigned long timeOfLastStateChange     = MAX_UNSIGNED_LONG; // Used to check how long we've been in this state
-unsigned long timeOfLastMotionDetection = MAX_UNSIGNED_LONG; // Used to check how long since last motion was detected
+unsigned long timeOfLastMotionDetection = 0; // Used to check how long since last motion was detected
+
+// Sound Path strings
+static const char soundPathNone[]       PROGMEM = "/";
+static const char soundPathRetire[]     PROGMEM = "/RETIRE/";
+static const char soundPathActive[]     PROGMEM = "/ACTIVE/";
+static const char soundPathSearch[]     PROGMEM = "/SEARCH/";
+static const char soundPathAutoSearch[] PROGMEM = "/AUTOSEARCH/";
 
 // TurretState to Sound Path Array
-const char soundPaths[][tsCount] PROGMEM = {
-  "/",
-  "/RETIRE/",
-  "/ACTIVE/",
-  "/SEARCH/",
-  "/AUTOSEARCH/"
+const char * const soundPaths[] PROGMEM = {
+  soundPathNone,
+  soundPathRetire,
+  soundPathActive,
+  soundPathSearch,
+  soundPathAutoSearch
 };
 
 // Other support sounds
-const char soundFxActive[]  PROGMEM = "/FX/ACTIVE/";
-const char soundFxAlert[]   PROGMEM = "/FX/ALERT/";
-const char soundFxDeploy[]  PROGMEM = "/FX/DEPLOY/";
-const char soundFxPing[]    PROGMEM = "/FX/PING/";
-const char soundFxRetract[] PROGMEM = "/FX/RETRACT/";
+static const char soundFxActive[]  PROGMEM = "/FX/ACTIVE";
+static const char soundFxAlert[]   PROGMEM = "/FX/ALERT";
+static const char soundFxDeploy[]  PROGMEM = "/FX/DEPLOY";
+static const char soundFxPing[]    PROGMEM = "/FX/PING";
+static const char soundFxRetract[] PROGMEM = "/FX/RETRACT";
 
 // Support Functions
 
@@ -294,16 +306,20 @@ unsigned long stateTimeout[tsCount] = {
 /* randomize - Shuffle up our random order */
 
 void randomize() {
-  randomSeed(analogRead(PIN_UNUSED_ANALOG_FOR_RANDOM_SEED));
-  dbgln(F("Randomised OK"));
+  unsigned long randomSeedValue = analogRead(PIN_UNUSED_ANALOG_FOR_RANDOM_SEED);
+  randomSeed(randomSeedValue);
+  dbgln2(F("Randomised with value: "), randomSeedValue);
 }
 
 /* Returns a random full file path from a base path on the SD card */
 
 void getRandomFilenameAtPath(const char *path, char *shortFileName) {
+  
+  dbgln2(F("Getting random filename at path "), path);
+  
   File directory = SD.open(path, FILE_READ);
   if (!directory) {
-    Serial.print("ERROR: Unable to open path ");
+    Serial.print(F("ERROR: Unable to open path "));
     Serial.println(path); 
     assert(false); // Bail
   }
@@ -323,7 +339,7 @@ void getRandomFilenameAtPath(const char *path, char *shortFileName) {
   }
 
   if (fileCount == 0) {
-    Serial.print("ERROR: No files at path: ");
+    Serial.print(F("ERROR: No files at path: "));
     Serial.println(path); 
     assert(false); // Bail
   }
@@ -334,7 +350,7 @@ void getRandomFilenameAtPath(const char *path, char *shortFileName) {
   directory.rewindDirectory();
 
   // The index of choice is...
-  short index = random() % fileCount;
+  short index = random(0, fileCount);
 
   dbgln2(F("Random file index choice is: "), index);
 
@@ -342,9 +358,9 @@ void getRandomFilenameAtPath(const char *path, char *shortFileName) {
   for (int i = 0; i < index; i++) {
     File entry = directory.openNextFile();
     if (!entry) {
-      Serial.print("ERROR: Ran out of files while seeking #");
+      Serial.print(F("ERROR: Ran out of files while seeking #")); //LATER - use printf
       Serial.print(index);
-      Serial.print(" at path: ");
+      Serial.print(F(" at path: "));
       Serial.println(path); 
       assert(false); // Bail
     }
@@ -355,16 +371,14 @@ void getRandomFilenameAtPath(const char *path, char *shortFileName) {
   // Okay - we're up to the file we actually want info on
   File randomEntry = directory.openNextFile();
   if (!randomEntry) {
-      Serial.print("ERROR: Couldn't open the chosen file while seeking #");
+      Serial.print(F("ERROR: Couldn't open the chosen file while seeking #"));
       Serial.print(index);
-      Serial.print(" at path: ");
+      Serial.print(F(" at path: "));
       Serial.println(path); 
       assert(false); // Bail
   }
 
   dbgln2(F("Chose random file: "), randomEntry.name());
-
-  
 
   strcpy(shortFileName, randomEntry.name());
   
@@ -390,13 +404,37 @@ void playSound(const char *name) {
   dbgln2(F("Finished playback of sound: "), name);
 }
 
+void playSound(const __FlashStringHelper *name) {
+  char buffer[MAX_PATH_LENGTH];
+  if (!name) return;
+  int length = strlen_P((PGM_P)name);
+  if (length == 0) return;
+  //if (!reserve(length)) return;
+  strcpy_P(buffer, (PGM_P)name);
+  playSound((const char *)&buffer[0]);
+}
+
+//unsigned char String::concat(const __FlashStringHelper * str) {
+//    if (!str) return 0; // return if the pointer is void
+//    int length = strlen_P((PGM_P)str); // cast it to PGM_P, which is basically const char *, and measure it using the _P version of strlen.
+//    if (length == 0) return 1;
+//    unsigned int newlen = len + length;
+//    if (!reserve(newlen)) return 0; // create a buffer of the correct length
+//    strcpy_P(buffer + len, (PGM_P)str); //copy the string in using strcpy_P
+//    len = newlen;
+//    return 1;
+//}
+
 void playRandomSoundForState(TurretState state) {
   char shortFileName[12];
-  const char *path = (const char *)soundPaths[state];
-  for (int i= 0; i<tsCount; i++) {
-    dbgln(soundPaths[i]);
-  }
+
+  char buffer[MAX_PATH_LENGTH];
+  char *ptr = (char*)pgm_read_word(&(soundPaths[state]));
+  strcpy_P(buffer, ptr);
+  const char *path = &buffer[0];
+  
   getRandomFilenameAtPath(path, &shortFileName[0]);
+  
   // Concat then play
   char fullFilePath[MAX_PATH_LENGTH];
   strcpy(&fullFilePath[0], path);
@@ -424,10 +462,10 @@ void motionWasDetected() {
 void turretStateWillChange(TurretState toState) {
   // Play preparation sounds
   if (toState == tsActive) {
-    playSound(soundFxActive);
+    playSound(FPSTR(soundFxActive));
   }
   if (turretState == tsSleeping) {
-    playSound(soundFxDeploy);
+    playSound(FPSTR(soundFxDeploy));
   }
 }
 
@@ -441,7 +479,7 @@ void turretStateDidChange(TurretState fromState) {
   // If state is sleep, play retract fx and turn off any lights
   if (turretState == tsSleeping) {
     lights.turnOff();
-    playSound(soundFxRetract);
+    playSound(FPSTR(soundFxRetract));
   }
   // If state is active and it's night time,
   // light 'em up!
@@ -553,7 +591,7 @@ void loop(){
     case tsActive:
       // If motion is detected, ping to confirm
       if (timeOfLastStateChange < timeOfLastMotionDetection) {
-        playSound(soundFxPing);
+        playSound(FPSTR(soundFxPing));
         resetStateChangeTimer(); // Essentially re-entering the active state without sound or colour changes...
         break;
       } 
