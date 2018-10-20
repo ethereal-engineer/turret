@@ -1,31 +1,42 @@
 #include <EnableInterrupt.h>  // Cleaner ways to do things
 #include <SD.h>
 #include <TMRpcm.h>           // Audio library
-#include <SPI.h>              // Audio library dependency
+
+#define __ASSERT_USE_STDERR
+
+#include <assert.h>
 
 // To debug or not to debug? - that, is the question
 #define DEBUG
 
 // Debug macro
 #ifdef DEBUG
-  #define dbg(x) Serial.println(x)
+  #define dbg(x) Serial.print(__LINE__); Serial.print(": "); Serial.print(x)
+  #define dbg2(x, y) dbg(x); Serial.print(y)
+  #define dbg3(x, y, z) dbg2(x, y); Serial.print(z)
+  #define dbgln(x) dbg(x); Serial.println("")
+  #define dbgln2(x,y) dbg2(x, y); Serial.println("")
+  #define dbgln3(x, y, z) dbg3(x, y, z); Serial.println("")
 #else
   #define dbg(x) void(x)
+  #define dbg2(x, y) dbg(x); void(y)
+  #define dbg3(x, y, z) dbg2(x, y); void(z)
+  #define dbgln(x) dbg(x)
+  #define dbgln2(x,y) dbg2(x, y)
+  #define dbgln3(x, y, z) dbg3(x, y, z)
 #endif
+
+// Helper debugging macro
+#define repeat(n, x) for (int _i = 0; _i < n; _i++) { x; }
 
 // Helper macro for readability
 #define MINS_TO_MS(mins) mins * 60000
 
 // There might be a proper one - check later
 #define MAX_UNSIGNED_LONG 0xFFFFFFFF
+#define MAX_PATH_LENGTH 16
 // Minimum light level reading that keeps us in day mode (0-1024)
 #define MINIMUM_DAY_MODE_AMBIENT_LIGHT_LEVEL 100
-
-/* Error Codes */
-#define ERROR_SD_INIT_FAIL -1
-#define ERROR_SD_OPEN_FAIL -2
-#define ERROR_SD_EMPTY_DIRECTORY -4
-#define ERROR_SD_UNKNOWN_FILE_ERROR -8
 
 /* Pins */
 
@@ -104,7 +115,7 @@ class RGBLED {
       digitalWrite(_pinData, bitRead(color, i));
       cycleClock();
     }
-    dbg("Set colour to: " + String(color, HEX));
+    dbgln2(F("Set colour to: "), color);
   }
   
 };
@@ -128,7 +139,7 @@ class PWMPoweredDevice {
   void updatePWM() {
     short dutyCycle = round(_power * 255) * _on;
     analogWrite(_pin, dutyCycle);
-    dbg("analogWrite to pin " + String(_pin, DEC) + ": " + String(dutyCycle, DEC));
+    dbgln3(F("analogWrite to pin "), _pin, dutyCycle);
   }
 
   public:
@@ -211,7 +222,7 @@ unsigned long timeOfLastStateChange     = MAX_UNSIGNED_LONG; // Used to check ho
 unsigned long timeOfLastMotionDetection = MAX_UNSIGNED_LONG; // Used to check how long since last motion was detected
 
 // TurretState to Sound Path Array
-char *soundPaths [tsCount] = {
+const char soundPaths[][tsCount] PROGMEM = {
   "/",
   "/RETIRE/",
   "/ACTIVE/",
@@ -220,13 +231,25 @@ char *soundPaths [tsCount] = {
 };
 
 // Other support sounds
-static char soundFxActive[]   = "/FX/ACTIVE";
-static char soundFxAlert[]    = "/FX/ALERT";
-static char soundFxDeploy[]   = "/FX/DEPLOY";
-static char soundFxPing[]     = "/FX/PING";
-static char soundFxRetract[]  = "/FX/RETRACT";
+const char soundFxActive[]  PROGMEM = "/FX/ACTIVE/";
+const char soundFxAlert[]   PROGMEM = "/FX/ALERT/";
+const char soundFxDeploy[]  PROGMEM = "/FX/DEPLOY/";
+const char soundFxPing[]    PROGMEM = "/FX/PING/";
+const char soundFxRetract[] PROGMEM = "/FX/RETRACT/";
 
 // Support Functions
+
+// handle diagnostic information given by assertion and abort program execution:
+void __assert(const char *__func, const char *__file, int __lineno, const char *__sexp) {
+    // transmit diagnostic informations through serial link. 
+    Serial.println(__func);
+    Serial.println(__file);
+    Serial.println(__lineno, DEC);
+    Serial.println(__sexp);
+    Serial.flush();
+    // abort program execution.
+    abort();
+}
 
 /* asciiToHex - Convert single ascii lowercase characters into hex value shorts */
 
@@ -253,7 +276,9 @@ EyeColor eyeColorForState(TurretState state) {
     case tsActive:        return ecActive;
     case tsSearching:     return ecSearching;
     case tsAutoSearching: return ecAutoSearching;
+    case tsCount:         return ecInitialising; // CRUD
   }
+  return ecInitialising; // CRUD
 }
 
 /* State timeout durations in milliseconds */
@@ -270,16 +295,17 @@ unsigned long stateTimeout[tsCount] = {
 
 void randomize() {
   randomSeed(analogRead(PIN_UNUSED_ANALOG_FOR_RANDOM_SEED));
-  dbg("Randomised OK");
+  dbgln(F("Randomised OK"));
 }
 
 /* Returns a random full file path from a base path on the SD card */
 
-char *randomFilenameAtPath(char *path) {
+void getRandomFilenameAtPath(const char *path, char *shortFileName) {
   File directory = SD.open(path, FILE_READ);
   if (!directory) {
-    Serial.println("ERROR: Unable to open path \"" + String(path) + "\". Check card and files and names."); 
-    exit(ERROR_SD_OPEN_FAIL); // Bail
+    Serial.print("ERROR: Unable to open path ");
+    Serial.println(path); 
+    assert(false); // Bail
   }
 
   short fileCount = 0;
@@ -297,9 +323,12 @@ char *randomFilenameAtPath(char *path) {
   }
 
   if (fileCount == 0) {
-    Serial.println("ERROR: No files at path \"" + String(path) + "\". Check card and files and names."); 
-    exit(ERROR_SD_EMPTY_DIRECTORY); // Bail
+    Serial.print("ERROR: No files at path: ");
+    Serial.println(path); 
+    assert(false); // Bail
   }
+
+  dbgln2(F("Found valid files numbering: "), fileCount);
 
   // Rewind and start the file listing again
   directory.rewindDirectory();
@@ -307,12 +336,17 @@ char *randomFilenameAtPath(char *path) {
   // The index of choice is...
   short index = random() % fileCount;
 
+  dbgln2(F("Random file index choice is: "), index);
+
   // Skip all the files we don't want
   for (int i = 0; i < index; i++) {
     File entry = directory.openNextFile();
     if (!entry) {
-      Serial.println("ERROR: Ran out of files while seeking #" + String(index, DEC) + " at \"" + path + "\". Huh?!."); 
-      exit(ERROR_SD_UNKNOWN_FILE_ERROR); // Bail
+      Serial.print("ERROR: Ran out of files while seeking #");
+      Serial.print(index);
+      Serial.print(" at path: ");
+      Serial.println(path); 
+      assert(false); // Bail
     }
     if (entry.isDirectory()) { continue; }; // Skip subdirectories
     entry.close();
@@ -321,44 +355,61 @@ char *randomFilenameAtPath(char *path) {
   // Okay - we're up to the file we actually want info on
   File randomEntry = directory.openNextFile();
   if (!randomEntry) {
-      Serial.println("ERROR: Couldn't open the chosen file while seeking #" + String(index, DEC) + " at \"" + path + "\". Huh?!."); 
-      exit(ERROR_SD_UNKNOWN_FILE_ERROR); // Bail
+      Serial.print("ERROR: Couldn't open the chosen file while seeking #");
+      Serial.print(index);
+      Serial.print(" at path: ");
+      Serial.println(path); 
+      assert(false); // Bail
   }
 
-  char *filename = randomEntry.name();
+  dbgln2(F("Chose random file: "), randomEntry.name());
 
-  dbg("Chose random file" + String(filename) + " from path " + String(path));
+  
+
+  strcpy(shortFileName, randomEntry.name());
   
   randomEntry.close();
   
   directory.rewindDirectory();
   directory.close();
-
-  // Finally, return the file name
-  return filename;
 }
 
 void resetStateChangeTimer() {
   timeOfLastStateChange = millis();
-  dbg("State change timer was reset");
+  dbgln(F("State change timer was reset"));
 }
 
-// Playback Function
+// Playback Functions
 
-void playSound(char *name) {
-  dbg("Beginning playback of sound: " + String(name));
-  audio.play(name);
+void playSound(const char *name) {
+  dbgln2(F("Beginning playback of sound: "), name);
+  audio.play((char *)name);
   while (audio.isPlaying()) {
     delay(100);
   }
-  dbg("Finished playback of sound: " + String(name));
+  dbgln2(F("Finished playback of sound: "), name);
+}
+
+void playRandomSoundForState(TurretState state) {
+  char shortFileName[12];
+  const char *path = (const char *)soundPaths[state];
+  for (int i= 0; i<tsCount; i++) {
+    dbgln(soundPaths[i]);
+  }
+  getRandomFilenameAtPath(path, &shortFileName[0]);
+  // Concat then play
+  char fullFilePath[MAX_PATH_LENGTH];
+  strcpy(&fullFilePath[0], path);
+  strcat(fullFilePath, shortFileName);
+  dbgln2(F("Will play random sound with full path: "), fullFilePath);
+  playSound(fullFilePath);
 }
 
 // Ambient Light Level Measurement
 
 unsigned int getAmbientLightLevel() {
   unsigned int level = analogRead(PIN_ANALOG_AMBIENT_LIGHT);
-  dbg("Got ambient light level: " + String(level, DEC));
+  dbgln2(F("Got ambient light level: "), level);
   return level;
 }
 
@@ -386,7 +437,7 @@ void turretStateDidChange(TurretState fromState) {
   // Update eye colour to new state colour
   eye.setColor(eyeColorForState(turretState));
   // Play new state sound
-  playSound(randomFilenameAtPath(soundPaths[turretState]));
+  playRandomSoundForState(turretState);
   // If state is sleep, play retract fx and turn off any lights
   if (turretState == tsSleeping) {
     lights.turnOff();
@@ -413,7 +464,7 @@ void operationModeDidChange(OperationMode fromMode) {
 bool shouldTimeoutSansMotion() {
   bool doTimeout = (millis() - timeOfLastStateChange > stateTimeout[turretState]);
   if (doTimeout) {
-    dbg("Turret state timeout reached");
+    dbgln(F("Turret state timeout reached"));
   }
   return doTimeout;
 }
@@ -421,26 +472,28 @@ bool shouldTimeoutSansMotion() {
 void enterTurretState(TurretState state) {
   if (state == turretState) { return; }
   TurretState old = turretState;
-  dbg("Turret state will change to " + String(state, DEC) + " from " + String(old, DEC));
+  dbgln3(F("Turret state will change to "),state, old);
   turretStateWillChange(state);
   turretState = state;
   turretStateDidChange(old);
-  dbg("Turret state did change to " + String(state, DEC) + " from " + String(old, DEC));
+  dbgln3(F("Turret state did change to "),state, old);
 }
 
 void enterOperationMode(OperationMode mode) {
   if (mode == operationMode) { return; }
   OperationMode old = operationMode;
-  dbg("Operation mode will change to " + String(mode, DEC) + " from " + String(old, DEC));
+  dbgln3(F("Operation mode will change to "),mode ,old);
   operationModeWillChange(mode);
   operationMode = mode;
   operationModeDidChange(old);
-  dbg("Operation mode did change to " + String(mode, DEC) + " from " + String(old, DEC));
+  dbgln3(F("Operation mode did change to "),mode ,old);
 }
 
 // Main
 
 void setup(){
+  // Debugging
+  Serial.begin(9600);
   // Configure "THE EYE"
   eye.begin(PIN_RGB_EYE_CLOCK, PIN_RGB_EYE_DATA);
   // Configure audio output
@@ -451,12 +504,10 @@ void setup(){
   // Configure the PIR
   pinMode(PIN_MOTION_DETECTOR, INPUT_PULLUP);
   enableInterrupt(PIN_MOTION_DETECTOR, motionWasDetected, RISING);
-  // Debugging
-  Serial.begin(9600);
   // Configure SD Card
   if (!SD.begin(PIN_SD_CHIP_SELECT)) {
-    Serial.println("ERROR: Unable to initialise SD card. Check card and pin connections."); 
-    exit(ERROR_SD_INIT_FAIL); // Bail
+    Serial.println(F("ERROR: Unable to initialise SD card.")); 
+    assert(false); // Bail
   }
 }
 
@@ -473,7 +524,7 @@ void loop(){
     static unsigned long mostRecentMotionDetected = MAX_UNSIGNED_LONG;
     if (mostRecentMotionDetected != timeOfLastMotionDetection) {
       mostRecentMotionDetected = timeOfLastMotionDetection;
-      dbg("Motion has been detected at millis = " + String(timeOfLastMotionDetection, DEC));
+      dbgln2(F("Motion has been detected at millis = "),timeOfLastMotionDetection);
     }
   #endif
 
@@ -533,7 +584,8 @@ void loop(){
         enterTurretState(tsSleeping);
       }
       break;
+    case tsCount: //CRUD - fixme
+      break;
   }
 
-  // LATER: Add ping in search state every 15 seconds or so
 }
