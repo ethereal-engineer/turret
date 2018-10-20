@@ -39,9 +39,15 @@
 
 // There might be a proper one - check later
 #define MAX_UNSIGNED_LONG 0xFFFFFFFF
+#define MAX_UNSIGNED_INT 0xFFFF
 #define MAX_PATH_LENGTH 16
 // Minimum light level reading that keeps us in day mode (0-1024)
 #define MINIMUM_DAY_MODE_AMBIENT_LIGHT_LEVEL 100
+
+// Light level override for debugging
+#ifdef DEBUG
+  unsigned int ambientLightLevelOverride = MAX_UNSIGNED_INT;
+#endif
 
 /* Pins */
 
@@ -231,7 +237,8 @@ static const char soundPathNone[]       PROGMEM = "/";
 static const char soundPathRetire[]     PROGMEM = "/RETIRE/";
 static const char soundPathActive[]     PROGMEM = "/ACTIVE/";
 static const char soundPathSearch[]     PROGMEM = "/SEARCH/";
-static const char soundPathAutoSearch[] PROGMEM = "/AUTOSEARCH/";
+static const char soundPathAutoSearch[] PROGMEM = "/AUTOSE~1/";
+static const char soundPathDeploy[]     PROGMEM = "/DEPLOY/"; // Not linked to a state
 
 // TurretState to Sound Path Array
 const char * const soundPaths[] PROGMEM = {
@@ -295,6 +302,18 @@ EyeColor eyeColorForState(TurretState state) {
 
 /* State timeout durations in milliseconds */
 
+#ifdef DEBUG
+
+unsigned long stateTimeout[tsCount] = {
+    0,    // tsInitialising
+    30000,   // tsSleeping
+    30000,    // tsActive
+    15000,    // tsSearching   
+    15000,    // tsAutoSearching
+};
+
+#else
+
 unsigned long stateTimeout[tsCount] = {
     MINS_TO_MS(0),    // tsInitialising
     MINS_TO_MS(15),   // tsSleeping
@@ -303,10 +322,12 @@ unsigned long stateTimeout[tsCount] = {
     MINS_TO_MS(5),    // tsAutoSearching
 };
 
+#endif
+
 /* randomize - Shuffle up our random order */
 
 void randomize() {
-  unsigned long randomSeedValue = analogRead(PIN_UNUSED_ANALOG_FOR_RANDOM_SEED);
+  unsigned long randomSeedValue = analogRead(PIN_UNUSED_ANALOG_FOR_RANDOM_SEED) + getAmbientLightLevel() + millis();
   randomSeed(randomSeedValue);
   dbgln2(F("Randomised with value: "), randomSeedValue);
 }
@@ -414,24 +435,8 @@ void playSound(const __FlashStringHelper *name) {
   playSound((const char *)&buffer[0]);
 }
 
-//unsigned char String::concat(const __FlashStringHelper * str) {
-//    if (!str) return 0; // return if the pointer is void
-//    int length = strlen_P((PGM_P)str); // cast it to PGM_P, which is basically const char *, and measure it using the _P version of strlen.
-//    if (length == 0) return 1;
-//    unsigned int newlen = len + length;
-//    if (!reserve(newlen)) return 0; // create a buffer of the correct length
-//    strcpy_P(buffer + len, (PGM_P)str); //copy the string in using strcpy_P
-//    len = newlen;
-//    return 1;
-//}
-
-void playRandomSoundForState(TurretState state) {
+void playRandomSoundAtPath(const char *path) {
   char shortFileName[12];
-
-  char buffer[MAX_PATH_LENGTH];
-  char *ptr = (char*)pgm_read_word(&(soundPaths[state]));
-  strcpy_P(buffer, ptr);
-  const char *path = &buffer[0];
   
   getRandomFilenameAtPath(path, &shortFileName[0]);
   
@@ -443,11 +448,37 @@ void playRandomSoundForState(TurretState state) {
   playSound(fullFilePath);
 }
 
+void playRandomSoundAtPath(const __FlashStringHelper *path) {
+  char buffer[MAX_PATH_LENGTH];
+  if (!path) return;
+  int length = strlen_P((PGM_P)path);
+  if (length == 0) return;
+  //if (!reserve(length)) return;
+  strcpy_P(buffer, (PGM_P)path);
+  playRandomSoundAtPath((const char *)&buffer[0]);
+}
+
+void playRandomSoundForState(TurretState state) {
+  
+  char buffer[MAX_PATH_LENGTH];
+  char *ptr = (char*)pgm_read_word(&(soundPaths[state]));
+  strcpy_P(buffer, ptr);
+  const char *path = &buffer[0];
+  
+  playRandomSoundAtPath(path);
+}
+
 // Ambient Light Level Measurement
 
 unsigned int getAmbientLightLevel() {
   unsigned int level = analogRead(PIN_ANALOG_AMBIENT_LIGHT);
   dbgln2(F("Got ambient light level: "), level);
+  #ifdef DEBUG
+    if (ambientLightLevelOverride != MAX_UNSIGNED_INT) {
+      level = ambientLightLevelOverride;
+      dbgln2(F("Overrode ambient light level with value: "), level);
+    }
+  #endif
   return level;
 }
 
@@ -481,23 +512,31 @@ void turretStateDidChange(TurretState fromState) {
     lights.turnOff();
     playSound(FPSTR(soundFxRetract));
   }
-  // If state is active and it's night time,
-  // light 'em up!
-  if (turretState == tsActive && operationMode == omNight) {
-    lights.turnOn();
-  }
+  updateLightsForStateChange();
 }
 
 void operationModeWillChange(OperationMode toMode) {
   // At this point, we randomise our audio responses
   randomize();
-}
-
-void operationModeDidChange(OperationMode fromMode) {
   
 }
 
+void operationModeDidChange(OperationMode fromMode) {
+  updateLightsForStateChange();
+}
+
 // Mode Change Functions
+
+void updateLightsForStateChange() {
+  // If state is active and it's night time,
+  // light 'em up!
+  if (operationMode == omDay && lights.isOn()) {
+    lights.turnOff();
+  } else if (turretState == tsActive && operationMode == omNight && !lights.isOn()) {
+    playRandomSoundAtPath(FPSTR(soundPathDeploy));
+    lights.turnOn();
+  }
+}
 
 bool shouldTimeoutSansMotion() {
   bool doTimeout = (millis() - timeOfLastStateChange > stateTimeout[turretState]);
@@ -625,5 +664,26 @@ void loop(){
     case tsCount: //CRUD - fixme
       break;
   }
-
+  #ifdef DEBUG
+    delay(3000);
+  #endif
+  #ifdef DEBUG
+    if (Serial.available()) {
+      char key = Serial.read();
+      switch (key) {
+        case 'm': 
+          timeOfLastMotionDetection = millis();
+          dbgln("Motion simulated");
+          break;
+        case 'd':
+          ambientLightLevelOverride = 500;
+          dbgln("Bright light simulated");
+          break;
+        case 'n':
+          ambientLightLevelOverride = 10;
+          dbgln("Low light simulated");
+          break;
+      }
+    }
+  #endif
 }
