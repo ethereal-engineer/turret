@@ -53,35 +53,35 @@
 
 // SD Card (stores the audio clips)
 
-#define PIN_SD_CHIP_SELECT 10
-#define PIN_SD_DATA_IN 11
-#define PIN_SD_DATA_OUT 12
-#define PIN_SD_CLOCK 13
+#define PIN_SD_CHIP_SELECT 10 // Physical Pin 16
+#define PIN_SD_DATA_IN 11     // Physical Pin 17
+#define PIN_SD_DATA_OUT 12    // Physical Pin 18
+#define PIN_SD_CLOCK 13       // Physical Pin 19
 
 // RGB LED Eye
 
-#define PIN_RGB_EYE_DATA 5
-#define PIN_RGB_EYE_CLOCK 6
+#define PIN_RGB_EYE_DATA 5    // Physical Pin 11
+#define PIN_RGB_EYE_CLOCK 6   // Physical Pin 12
 
 // Speaker
 
-#define PIN_AUDIO_OUT 9
+#define PIN_AUDIO_OUT 9       // Physical Pin 15
 
 // Lights
 
-#define PIN_LIGHTS 3
+#define PIN_LIGHTS 3          // Physical Pin 5
 
 // PIR
 
-#define PIN_MOTION_DETECTOR 2
+#define PIN_MOTION_DETECTOR 2 // Physical Pin 4
 
 // CDS/LRD-based ambient light level input
 
-#define PIN_ANALOG_AMBIENT_LIGHT A0
+#define PIN_ANALOG_AMBIENT_LIGHT A0           // Physical Pin 23
 
 // Unused PIN for random seed generation
 
-#define PIN_UNUSED_ANALOG_FOR_RANDOM_SEED A1
+#define PIN_UNUSED_ANALOG_FOR_RANDOM_SEED A1  // Physical Pin 24
 
 // Classes (split files later)
 
