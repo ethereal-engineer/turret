@@ -14,11 +14,17 @@
 // To debug or not to debug? - that, is the question
 #define DEBUG
 
-// Debug macro
+// Debug settings panel
+#ifdef DEBUG
+  //#define LOG_AMBIENT_LIGHT_LEVEL
+  //#define USE_SHORT_TIMEOUTS
+#endif
+
+// Debug logging macro
 #ifdef DEBUG
   #define dbg(x) Serial.print(__LINE__); Serial.print(": "); Serial.print(x)
-  #define dbg2(x, y) dbg(x); Serial.print(y)
-  #define dbg3(x, y, z) dbg2(x, y); Serial.print(z)
+  #define dbg2(x, y) dbg(x); Serial.print(" "); Serial.print(y)
+  #define dbg3(x, y, z) dbg2(x, y); Serial.print(" "); Serial.print(z)
   #define dbgln(x) dbg(x); Serial.println("")
   #define dbgln2(x,y) dbg2(x, y); Serial.println("")
   #define dbgln3(x, y, z) dbg3(x, y, z); Serial.println("")
@@ -31,11 +37,15 @@
   #define dbgln3(x, y, z) dbg3(x, y, z)
 #endif
 
+// Main loop delay
+#define MAIN_LOOP_DELAY 500
+
 // Helper debugging macro
 #define repeat(n, x) for (int _i = 0; _i < n; _i++) { x; }
 
-// Helper macro for readability
+// Helper macros for readability
 #define MINS_TO_MS(mins) mins * 60000
+#define SECS_TO_MS(secs) secs * 1000
 
 // There might be a proper one - check later
 #define MAX_UNSIGNED_LONG 0xFFFFFFFF
@@ -213,12 +223,14 @@ enum OperationMode {
     deviate based on day and night etc) - writing this in the car on the way to
     Braidwood Grandparents Day right now. Loving it! */
 
+// TODO: filter out noise from LED PWM. Until then, use full-mix colours
+
 enum EyeColor {
   ecInitialising = 0xFFFFFF, // A rainbow blotch - it's pretty, but good to see all the LEDs are working
-  ecSleeping = 0x222222, // A dim rainbow blotch
+  ecSleeping = 0xFFFFFF, // A rainbow blotch
   ecActive = 0xFF0000, // Hot alert alarm red
-  ecSearching = 0x0000FF, // Blue - are you still there?
-  ecAutoSearching = 0xFF00FF // Lonely purple
+  ecSearching = 0xFF00FF, // Purple - are you still there?
+  ecAutoSearching = 0x0000FF // Lonely blue
 };
 
 /* Globals */
@@ -302,14 +314,14 @@ EyeColor eyeColorForState(TurretState state) {
 
 /* State timeout durations in milliseconds */
 
-#ifdef DEBUG
+#ifdef USE_SHORT_TIMEOUTS
 
 unsigned long stateTimeout[tsCount] = {
     0,    // tsInitialising
     30000,   // tsSleeping
     30000,    // tsActive
     15000,    // tsSearching   
-    15000,    // tsAutoSearching
+    10000,    // tsAutoSearching
 };
 
 #else
@@ -319,16 +331,24 @@ unsigned long stateTimeout[tsCount] = {
     MINS_TO_MS(15),   // tsSleeping
     MINS_TO_MS(5),    // tsActive
     MINS_TO_MS(1),    // tsSearching   
-    MINS_TO_MS(5),    // tsAutoSearching
+    SECS_TO_MS(10),   // tsAutoSearching
 };
 
 #endif
 
+/* A special reset function for debugging etc */
+void(* resetFunc) (void) = 0; // declare reset function @ address 0
+
 /* randomize - Shuffle up our random order */
 
 void randomize() {
+  dbgln(F("Initialising randomiser..."));
   unsigned long randomSeedValue = analogRead(PIN_UNUSED_ANALOG_FOR_RANDOM_SEED) + getAmbientLightLevel() + millis();
   randomSeed(randomSeedValue);
+  for (int i = 0; i < randomSeedValue % 10; i++) {
+    Serial.print(random(0,100));
+  }
+  Serial.println("");
   dbgln2(F("Randomised with value: "), randomSeedValue);
 }
 
@@ -468,15 +488,43 @@ void playRandomSoundForState(TurretState state) {
   playRandomSoundAtPath(path);
 }
 
+void playSoundForStateWillChange(TurretState fromState, TurretState toState) {
+  if (toState == tsActive) {
+    playSound(FPSTR(soundFxActive));
+  }
+  if (fromState == tsSleeping || fromState == tsInitialising) {
+    playSound(FPSTR(soundFxDeploy));
+  }
+}
+
+void playSoundForStateDidChange(TurretState fromState, TurretState toState) {
+  // If going to sleep from any state but autosearch,
+  // play both retract and voice clip, otherwise,
+  // just retract
+  if (toState == tsSleeping) {
+    if (fromState != tsAutoSearching) {
+      playRandomSoundForState(tsSleeping);  
+    }
+    playSound(FPSTR(soundFxRetract));
+  } else {
+    playRandomSoundForState(toState); 
+  }
+}
+
 // Ambient Light Level Measurement
 
 unsigned int getAmbientLightLevel() {
   unsigned int level = analogRead(PIN_ANALOG_AMBIENT_LIGHT);
-  dbgln2(F("Got ambient light level: "), level);
   #ifdef DEBUG
     if (ambientLightLevelOverride != MAX_UNSIGNED_INT) {
       level = ambientLightLevelOverride;
-      dbgln2(F("Overrode ambient light level with value: "), level);
+      #ifdef LOG_AMBIENT_LIGHT_LEVEL
+        dbgln2(F("Overrode ambient light level with value: "), level);
+      #endif
+    } else {
+      #ifdef LOG_AMBIENT_LIGHT_LEVEL
+        dbgln2(F("Got ambient light level: "), level);
+      #endif
     }
   #endif
   return level;
@@ -491,28 +539,19 @@ void motionWasDetected() {
 }
 
 void turretStateWillChange(TurretState toState) {
+  // Update eye colour to new state colour
+  eye.setColor(eyeColorForState(toState));
   // Play preparation sounds
-  if (toState == tsActive) {
-    playSound(FPSTR(soundFxActive));
-  }
-  if (turretState == tsSleeping) {
-    playSound(FPSTR(soundFxDeploy));
-  }
+  playSoundForStateWillChange(turretState, toState);
 }
 
 void turretStateDidChange(TurretState fromState) {
   // Update the time of last state change
   resetStateChangeTimer();
-  // Update eye colour to new state colour
-  eye.setColor(eyeColorForState(turretState));
   // Play new state sound
-  playRandomSoundForState(turretState);
-  // If state is sleep, play retract fx and turn off any lights
-  if (turretState == tsSleeping) {
-    lights.turnOff();
-    playSound(FPSTR(soundFxRetract));
-  }
-  updateLightsForStateChange();
+  playSoundForStateDidChange(fromState, turretState);
+  // Adjust lighting for mode
+  updateLightsForStateDidChange(fromState, turretState);
 }
 
 void operationModeWillChange(OperationMode toMode) {
@@ -522,20 +561,36 @@ void operationModeWillChange(OperationMode toMode) {
 }
 
 void operationModeDidChange(OperationMode fromMode) {
-  updateLightsForStateChange();
+  updateLightsForOperationModeDidChange(fromMode, operationMode);
 }
 
 // Mode Change Functions
 
-void updateLightsForStateChange() {
+void updateLightsForOperationModeDidChange(OperationMode fromMode, OperationMode toMode) {
+  // Trigger state update with current state - a bit yuck (clean it later)
+  updateLightsForStateDidChange(turretState, turretState);
+}
+
+void updateLightsForStateDidChange(TurretState fromState, TurretState toState) {
   // If state is active and it's night time,
   // light 'em up!
   if (operationMode == omDay && lights.isOn()) {
     lights.turnOff();
-  } else if (turretState == tsActive && operationMode == omNight && !lights.isOn()) {
+  } else if (toState == tsActive && operationMode == omNight && !lights.isOn()) {
     playRandomSoundAtPath(FPSTR(soundPathDeploy));
     lights.turnOn();
+  } else if (toState == tsSleeping) {
+    lights.turnOff();
   }
+
+// Causes noise due to PWM at the moment - will filter then restore
+  // LATER - improve this conditional blargh
+  // Light dimming - dim when searching, full bright when active
+//  if (toState == tsSearching) {
+//    lights.setPower(0.5);
+//  } else {
+//    lights.setPower(1.0);
+//  }
 }
 
 bool shouldTimeoutSansMotion() {
@@ -664,9 +719,9 @@ void loop(){
     case tsCount: //CRUD - fixme
       break;
   }
-  #ifdef DEBUG
-    delay(3000);
-  #endif
+  
+  delay(MAIN_LOOP_DELAY);
+  
   #ifdef DEBUG
     if (Serial.available()) {
       char key = Serial.read();
@@ -683,6 +738,23 @@ void loop(){
           ambientLightLevelOverride = 10;
           dbgln("Low light simulated");
           break;
+        case 'r':
+          dbgln("Resetting...");
+          audio.disable();
+          Serial.flush();
+          resetFunc();
+          break;
+        case '+':
+          dbgln("Increased volume");
+          audio.volume(1);
+          playSound(FPSTR(soundFxPing));
+          break;
+        case '-':
+          dbgln("Decreased volume");
+          audio.volume(0);
+          playSound(FPSTR(soundFxPing));
+          break;
+          
       }
     }
   #endif
