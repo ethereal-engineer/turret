@@ -262,11 +262,12 @@ const char * const soundPaths[] PROGMEM = {
 };
 
 // Other support sounds
-static const char soundFxActive[]  PROGMEM = "/FX/ACTIVE";
-static const char soundFxAlert[]   PROGMEM = "/FX/ALERT";
-static const char soundFxDeploy[]  PROGMEM = "/FX/DEPLOY";
-static const char soundFxPing[]    PROGMEM = "/FX/PING";
-static const char soundFxRetract[] PROGMEM = "/FX/RETRACT";
+static const char soundFxActive[]   PROGMEM = "/FX/ACTIVE";
+static const char soundFxAlert[]    PROGMEM = "/FX/ALERT";
+static const char soundFxDeploy[]   PROGMEM = "/FX/DEPLOY";
+static const char soundFxPing[]     PROGMEM = "/FX/PING";
+static const char soundFxRetract[]  PROGMEM = "/FX/RETRACT";
+static const char soundFxWhoa[]     PROGMEM = "/FX/WHOA";
 
 // Support Functions
 
@@ -557,7 +558,11 @@ void turretStateDidChange(TurretState fromState) {
 void operationModeWillChange(OperationMode toMode) {
   // At this point, we randomise our audio responses
   randomize();
-  
+  // If we will change from night to day or day to night, say "whoa"
+  // (but no sound on initial set)
+  if ((toMode == omDay || toMode == omNight) && operationMode != omUnknown) {
+    playSound(FPSTR(soundFxWhoa));
+  }
 }
 
 void operationModeDidChange(OperationMode fromMode) {
