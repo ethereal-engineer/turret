@@ -4,7 +4,7 @@ EELAYER 26 0
 EELAYER END
 $Descr A4 11693 8268
 encoding utf-8
-Sheet 2 4
+Sheet 2 5
 Title ""
 Date ""
 Rev ""
@@ -40,10 +40,10 @@ Wire Wire Line
 Wire Wire Line
 	2050 2250 2650 2250
 $Comp
-L Device:R_US R1
+L Device:R_US R3
 U 1 1 5BCA6BFC
 P 2650 1950
-F 0 "R1" H 2718 1996 50  0000 L CNN
+F 0 "R3" H 2718 1996 50  0000 L CNN
 F 1 "10k" H 2718 1905 50  0000 L CNN
 F 2 "Resistor_THT:R_Axial_DIN0204_L3.6mm_D1.6mm_P7.62mm_Horizontal" V 2690 1940 50  0001 C CNN
 F 3 "~" H 2650 1950 50  0001 C CNN
