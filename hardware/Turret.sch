@@ -160,7 +160,7 @@ F 3 "~" H 7000 5750 50  0001 C CNN
 	1    0    0    -1  
 $EndComp
 Wire Wire Line
-	7000 5550 7000 5750
+	7000 5550 7000 5650
 $Comp
 L power:+5V #PWR08
 U 1 1 5BC34E17
@@ -687,4 +687,21 @@ Wire Wire Line
 	6900 2900 6900 3050
 Wire Wire Line
 	6900 3050 7800 3050
+$Comp
+L Device:R_US R4
+U 1 1 5BD3EB62
+P 6700 5500
+F 0 "R4" H 6768 5546 50  0000 L CNN
+F 1 "10k" H 6768 5455 50  0000 L CNN
+F 2 "Resistor_THT:R_Axial_DIN0204_L3.6mm_D1.6mm_P7.62mm_Horizontal" V 6740 5490 50  0001 C CNN
+F 3 "~" H 6700 5500 50  0001 C CNN
+	1    6700 5500
+	1    0    0    -1  
+$EndComp
+Connection ~ 6700 5350
+Wire Wire Line
+	6700 5650 7000 5650
+Connection ~ 7000 5650
+Wire Wire Line
+	7000 5650 7000 5750
 $EndSCHEMATC
