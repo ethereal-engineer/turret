@@ -1,3 +1,4 @@
 (sym_lib_table
   (lib (name turretComponents)(type Legacy)(uri /home/adam/Turret/hardware/turretComponents.lib)(options "")(descr ""))
+  (lib (name Turret-rescue)(type Legacy)(uri ${KIPRJMOD}/Turret-rescue.lib)(options "")(descr ""))
 )

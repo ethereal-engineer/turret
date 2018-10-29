@@ -188,10 +188,10 @@ S 5400 4650 550  500
 U 5BCB1E2A
 F0 "RGBLED" 50
 F1 "RGBLED.sch" 50
-F2 "DIN" I L 5400 4850 50 
-F3 "CLK" I L 5400 4950 50 
-F4 "VCC" I L 5400 4750 50 
-F5 "GND" I L 5400 5050 50 
+F2 "VCC" I L 5400 4750 50 
+F3 "GND" I L 5400 5050 50 
+F4 "DIN" I L 5400 4950 50 
+F5 "CLK" I L 5400 4850 50 
 $EndSheet
 $Comp
 L power:Earth #PWR07
@@ -224,7 +224,7 @@ Wire Wire Line
 Wire Wire Line
 	5250 5050 5400 5050
 $Comp
-L MCU_Microchip_ATmega:ATmega328P-PU U1
+L Turret-rescue:ATmega328P-PU-MCU_Microchip_ATmega U1
 U 1 1 5BCC0DCB
 P 4100 3600
 F 0 "U1" H 3459 3646 50  0000 R CNN
@@ -235,7 +235,7 @@ F 3 "http://ww1.microchip.com/downloads/en/DeviceDoc/ATmega328_P%20AVR%20MCU%20w
 	1    0    0    -1  
 $EndComp
 $Comp
-L turretComponents:SD_CARD_11PIN SD1
+L Turret-rescue:SD_CARD_11PIN-turretComponents SD1
 U 1 1 5BCC7AA6
 P 9750 3050
 F 0 "SD1" H 10278 3046 50  0000 L CNN
