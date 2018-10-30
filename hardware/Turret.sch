@@ -4,7 +4,7 @@ EELAYER 26 0
 EELAYER END
 $Descr A4 11693 8268
 encoding utf-8
-Sheet 1 5
+Sheet 1 4
 Title ""
 Date ""
 Rev ""
@@ -14,39 +14,6 @@ Comment2 ""
 Comment3 ""
 Comment4 ""
 $EndDescr
-$Comp
-L Device:LED LED_PANEL1
-U 1 1 5BC18FD9
-P 7000 4650
-F 0 "LED_PANEL1" H 7000 4900 50  0000 C CNN
-F 1 "12_LED_Panel_5V" H 7000 4800 50  0000 C CNN
-F 2 "Connector_PinHeader_2.54mm:PinHeader_1x02_P2.54mm_Vertical" H 7000 5175 50  0001 C CNN
-F 3 "http://www.cree.com/%7E/media/Files/Cree/LED%20Components%20and%20Modules/XLamp/Data%20and%20Binning/ds%20XHP50.pdf" H 6925 4550 50  0001 C CNN
-	1    7000 4650
-	0    -1   -1   0   
-$EndComp
-$Comp
-L Device:LED LED_PANEL2
-U 1 1 5BC1905B
-P 7450 4650
-F 0 "LED_PANEL2" H 7450 4900 50  0000 C CNN
-F 1 "12_LED_Panel_5V" H 7450 4800 50  0000 C CNN
-F 2 "Connector_PinHeader_2.54mm:PinHeader_1x02_P2.54mm_Vertical" H 7450 5175 50  0001 C CNN
-F 3 "http://www.cree.com/%7E/media/Files/Cree/LED%20Components%20and%20Modules/XLamp/Data%20and%20Binning/ds%20XHP50.pdf" H 7375 4550 50  0001 C CNN
-	1    7450 4650
-	0    -1   -1   0   
-$EndComp
-$Comp
-L Device:Speaker SPK1
-U 1 1 5BC19126
-P 7050 2000
-F 0 "SPK1" H 7220 1996 50  0000 L CNN
-F 1 "Speaker" H 7220 1905 50  0000 L CNN
-F 2 "Connector_PinHeader_2.54mm:PinHeader_1x02_P2.54mm_Vertical" H 7050 1800 50  0001 C CNN
-F 3 "~" H 7040 1950 50  0001 C CNN
-	1    7050 2000
-	1    0    0    -1  
-$EndComp
 $Comp
 L sensors:PIR_Motion_Sensor PIR1
 U 1 1 5BC198E5
@@ -89,17 +56,6 @@ F2 "VCC" I L 5250 3500 50
 F3 "GND" I L 5250 3700 50 
 F4 "MEASUREMENT" I L 5250 3600 50 
 $EndSheet
-$Sheet
-S 5500 1850 1200 450 
-U 5BC1A12F
-F0 "Audio Amplifier" 50
-F1 "AudioAmplifier.sch" 50
-F2 "AUDIO_INPUT" I L 5500 2100 50 
-F3 "VCC" I L 5500 2000 50 
-F4 "GND" I L 5500 2200 50 
-F5 "AUDIO_OUT_+" I R 6700 2000 50 
-F6 "AUDIO_OUT_-" I R 6700 2100 50 
-$EndSheet
 $Comp
 L power:Earth #PWR05
 U 1 1 5BC1A9CA
@@ -122,10 +78,6 @@ F 3 "~" H 5400 2250 50  0001 C CNN
 	1    5400 2250
 	1    0    0    -1  
 $EndComp
-Wire Wire Line
-	6700 2000 6850 2000
-Wire Wire Line
-	6700 2100 6850 2100
 $Comp
 L power:+5V #PWR04
 U 1 1 5BC1B463
@@ -135,17 +87,6 @@ F 1 "+5V" H 5115 3673 50  0000 C CNN
 F 2 "" H 5100 3500 50  0001 C CNN
 F 3 "" H 5100 3500 50  0001 C CNN
 	1    5100 3500
-	1    0    0    -1  
-$EndComp
-$Comp
-L power:+5V #PWR013
-U 1 1 5BC2ECFD
-P 7000 4150
-F 0 "#PWR013" H 7000 4000 50  0001 C CNN
-F 1 "+5V" H 7015 4323 50  0000 C CNN
-F 2 "" H 7000 4150 50  0001 C CNN
-F 3 "" H 7000 4150 50  0001 C CNN
-	1    7000 4150
 	1    0    0    -1  
 $EndComp
 $Comp
@@ -161,17 +102,6 @@ F 3 "~" H 7000 5750 50  0001 C CNN
 $EndComp
 Wire Wire Line
 	7000 5550 7000 5650
-$Comp
-L power:+5V #PWR08
-U 1 1 5BC34E17
-P 5400 2000
-F 0 "#PWR08" H 5400 1850 50  0001 C CNN
-F 1 "+5V" H 5415 2173 50  0000 C CNN
-F 2 "" H 5400 2000 50  0001 C CNN
-F 3 "" H 5400 2000 50  0001 C CNN
-	1    5400 2000
-	1    0    0    -1  
-$EndComp
 $Comp
 L power:+5V #PWR011
 U 1 1 5BC35D55
@@ -267,16 +197,6 @@ F 3 "~" H 4800 3700 50  0001 C CNN
 	1    4800 3700
 	1    0    0    -1  
 $EndComp
-Wire Wire Line
-	7000 4150 7000 4500
-Wire Wire Line
-	7000 4500 7450 4500
-Connection ~ 7000 4500
-Wire Wire Line
-	7000 4800 7450 4800
-Wire Wire Line
-	7000 4800 7000 5150
-Connection ~ 7000 4800
 $Comp
 L power:Earth #PWR012
 U 1 1 5BC35D14
@@ -315,11 +235,7 @@ $EndComp
 Wire Wire Line
 	9150 3000 9150 3250
 Wire Wire Line
-	5500 2200 5400 2200
-Wire Wire Line
 	5400 2200 5400 2250
-Wire Wire Line
-	5400 2000 5500 2000
 Wire Wire Line
 	4700 2500 4900 2500
 Wire Wire Line
@@ -412,61 +328,6 @@ Wire Wire Line
 	4800 3500 4800 3550
 Wire Wire Line
 	4800 3900 4800 3850
-$Comp
-L Device:D_Zener D1
-U 1 1 5BD1CCE1
-P 9550 1400
-F 0 "D1" V 9504 1479 50  0000 L CNN
-F 1 "3.3V" V 9595 1479 50  0000 L CNN
-F 2 "Diode_THT:D_T-1_P5.08mm_Horizontal" H 9550 1400 50  0001 C CNN
-F 3 "~" H 9550 1400 50  0001 C CNN
-	1    9550 1400
-	0    1    1    0   
-$EndComp
-$Comp
-L Device:R_US R2
-U 1 1 5BD1CD53
-P 9550 1000
-F 0 "R2" H 9618 1046 50  0000 L CNN
-F 1 "1k" H 9618 955 50  0000 L CNN
-F 2 "Resistor_THT:R_Axial_DIN0204_L3.6mm_D1.6mm_P7.62mm_Horizontal" V 9590 990 50  0001 C CNN
-F 3 "~" H 9550 1000 50  0001 C CNN
-	1    9550 1000
-	1    0    0    -1  
-$EndComp
-$Comp
-L power:Earth #PWR021
-U 1 1 5BD20AE1
-P 9550 1650
-F 0 "#PWR021" H 9550 1400 50  0001 C CNN
-F 1 "Earth" H 9550 1500 50  0001 C CNN
-F 2 "" H 9550 1650 50  0001 C CNN
-F 3 "~" H 9550 1650 50  0001 C CNN
-	1    9550 1650
-	1    0    0    -1  
-$EndComp
-$Comp
-L power:+5V #PWR020
-U 1 1 5BD20B2E
-P 9550 750
-F 0 "#PWR020" H 9550 600 50  0001 C CNN
-F 1 "+5V" H 9565 923 50  0000 C CNN
-F 2 "" H 9550 750 50  0001 C CNN
-F 3 "" H 9550 750 50  0001 C CNN
-	1    9550 750 
-	1    0    0    -1  
-$EndComp
-$Comp
-L power:+3.3V #PWR022
-U 1 1 5BD2490E
-P 9950 1200
-F 0 "#PWR022" H 9950 1050 50  0001 C CNN
-F 1 "+3.3V" V 9965 1328 50  0000 L CNN
-F 2 "" H 9950 1200 50  0001 C CNN
-F 3 "" H 9950 1200 50  0001 C CNN
-	1    9950 1200
-	0    1    1    0   
-$EndComp
 Wire Wire Line
 	9300 2800 9150 2800
 Wire Wire Line
@@ -649,17 +510,6 @@ Connection ~ 4800 3900
 Wire Wire Line
 	4800 3900 4900 3900
 Wire Wire Line
-	9550 750  9550 850 
-Wire Wire Line
-	9550 1150 9550 1250
-Wire Wire Line
-	9550 1250 9950 1250
-Wire Wire Line
-	9950 1250 9950 1200
-Connection ~ 9550 1250
-Wire Wire Line
-	9550 1550 9550 1650
-Wire Wire Line
 	9300 2900 9150 2900
 Wire Wire Line
 	9150 2900 9150 2950
@@ -704,4 +554,146 @@ Wire Wire Line
 Connection ~ 7000 5650
 Wire Wire Line
 	7000 5650 7000 5750
+$Comp
+L Connector:Screw_Terminal_01x02 J6
+U 1 1 5BD8D520
+P 7200 4600
+F 0 "J6" H 7280 4592 50  0000 L CNN
+F 1 "LED_Panel_1" H 7280 4501 50  0000 L CNN
+F 2 "TerminalBlock:TerminalBlock_bornier-2_P5.08mm" H 7200 4600 50  0001 C CNN
+F 3 "~" H 7200 4600 50  0001 C CNN
+	1    7200 4600
+	1    0    0    -1  
+$EndComp
+$Comp
+L Connector:Screw_Terminal_01x02 J7
+U 1 1 5BD8D5A4
+P 7650 4600
+F 0 "J7" H 7730 4592 50  0000 L CNN
+F 1 "LED_Panel_2" H 7730 4501 50  0000 L CNN
+F 2 "TerminalBlock:TerminalBlock_bornier-2_P5.08mm" H 7650 4600 50  0001 C CNN
+F 3 "~" H 7650 4600 50  0001 C CNN
+	1    7650 4600
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	7000 4700 7000 4800
+Wire Wire Line
+	7000 4500 7450 4500
+Wire Wire Line
+	7450 4500 7450 4600
+Connection ~ 7000 4500
+Wire Wire Line
+	7000 4500 7000 4600
+Wire Wire Line
+	7000 4800 7450 4800
+Wire Wire Line
+	7450 4800 7450 4700
+Connection ~ 7000 4800
+Wire Wire Line
+	7000 4800 7000 5150
+$Comp
+L Connector:Screw_Terminal_01x02 J5
+U 1 1 5BDA5A61
+P 6000 2100
+F 0 "J5" H 6080 2092 50  0000 L CNN
+F 1 "Audio_Out" H 6080 2001 50  0000 L CNN
+F 2 "TerminalBlock:TerminalBlock_bornier-2_P5.08mm" H 6000 2100 50  0001 C CNN
+F 3 "~" H 6000 2100 50  0001 C CNN
+	1    6000 2100
+	1    0    0    -1  
+$EndComp
+$Comp
+L Device:CP C1
+U 1 1 5BDA5C80
+P 5650 2100
+F 0 "C1" V 5905 2100 50  0000 C CNN
+F 1 "100uF" V 5814 2100 50  0000 C CNN
+F 2 "Capacitor_THT:CP_Radial_D5.0mm_P2.50mm" H 5688 1950 50  0001 C CNN
+F 3 "~" H 5650 2100 50  0001 C CNN
+	1    5650 2100
+	0    -1   -1   0   
+$EndComp
+Wire Wire Line
+	5400 2200 5800 2200
+$Comp
+L Connector:Screw_Terminal_01x03 J8
+U 1 1 5BDB604B
+P 6950 1900
+F 0 "J8" V 6823 1712 50  0000 R CNN
+F 1 "Power" V 6914 1712 50  0000 R CNN
+F 2 "TerminalBlock:TerminalBlock_bornier-3_P5.08mm" H 6950 1900 50  0001 C CNN
+F 3 "~" H 6950 1900 50  0001 C CNN
+	1    6950 1900
+	0    -1   1    0   
+$EndComp
+$Comp
+L power:+5V #PWR0101
+U 1 1 5BDD1444
+P 6850 1650
+F 0 "#PWR0101" H 6850 1500 50  0001 C CNN
+F 1 "+5V" H 6865 1823 50  0000 C CNN
+F 2 "" H 6850 1650 50  0001 C CNN
+F 3 "" H 6850 1650 50  0001 C CNN
+	1    6850 1650
+	1    0    0    -1  
+$EndComp
+$Comp
+L power:+3.3V #PWR0102
+U 1 1 5BDD14CC
+P 6950 1650
+F 0 "#PWR0102" H 6950 1500 50  0001 C CNN
+F 1 "+3.3V" H 6965 1823 50  0000 C CNN
+F 2 "" H 6950 1650 50  0001 C CNN
+F 3 "" H 6950 1650 50  0001 C CNN
+	1    6950 1650
+	1    0    0    -1  
+$EndComp
+$Comp
+L power:Earth #PWR0103
+U 1 1 5BDD1570
+P 7400 1850
+F 0 "#PWR0103" H 7400 1600 50  0001 C CNN
+F 1 "Earth" H 7400 1700 50  0001 C CNN
+F 2 "" H 7400 1850 50  0001 C CNN
+F 3 "~" H 7400 1850 50  0001 C CNN
+	1    7400 1850
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	6850 1700 6850 1650
+Wire Wire Line
+	6950 1700 6950 1650
+Wire Wire Line
+	7050 1700 7400 1700
+Wire Wire Line
+	7400 1700 7400 1850
+$Comp
+L Connector:Screw_Terminal_01x02 J9
+U 1 1 5BDE1AF9
+P 7350 4000
+F 0 "J9" H 7430 3992 50  0000 L CNN
+F 1 "LED_Panel_Power" H 7430 3901 50  0000 L CNN
+F 2 "TerminalBlock:TerminalBlock_bornier-2_P5.08mm" H 7350 4000 50  0001 C CNN
+F 3 "~" H 7350 4000 50  0001 C CNN
+	1    7350 4000
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	7000 4000 7150 4000
+Wire Wire Line
+	7000 4000 7000 4500
+$Comp
+L power:Earth #PWR0104
+U 1 1 5BDEA31E
+P 7150 4250
+F 0 "#PWR0104" H 7150 4000 50  0001 C CNN
+F 1 "Earth" H 7150 4100 50  0001 C CNN
+F 2 "" H 7150 4250 50  0001 C CNN
+F 3 "~" H 7150 4250 50  0001 C CNN
+	1    7150 4250
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	7150 4250 7150 4100
 $EndSCHEMATC
