@@ -17,7 +17,7 @@
 // Debug settings panel
 #ifdef DEBUG
   //#define LOG_AMBIENT_LIGHT_LEVEL
-  //#define USE_SHORT_TIMEOUTS
+  #define USE_SHORT_TIMEOUTS
 #endif
 
 // Debug logging macro
@@ -227,7 +227,7 @@ enum OperationMode {
 
 enum EyeColor {
   ecInitialising = 0xFFFFFF, // A rainbow blotch - it's pretty, but good to see all the LEDs are working
-  ecSleeping = 0xFFFFFF, // A rainbow blotch
+  ecSleeping = 0x333333, // A dim rainbow blotch
   ecActive = 0xFF0000, // Hot alert alarm red
   ecSearching = 0xFF00FF, // Purple - are you still there?
   ecAutoSearching = 0x0000FF // Lonely blue
@@ -591,11 +591,11 @@ void updateLightsForStateDidChange(TurretState fromState, TurretState toState) {
 // Causes noise due to PWM at the moment - will filter then restore
   // LATER - improve this conditional blargh
   // Light dimming - dim when searching, full bright when active
-//  if (toState == tsSearching) {
-//    lights.setPower(0.5);
-//  } else {
-//    lights.setPower(1.0);
-//  }
+  if (toState == tsSearching) {
+    lights.setPower(0.5);
+  } else {
+    lights.setPower(1.0);
+  }
 }
 
 bool shouldTimeoutSansMotion() {
@@ -635,7 +635,8 @@ void setup(){
   eye.begin(PIN_RGB_EYE_CLOCK, PIN_RGB_EYE_DATA);
   // Configure audio output
   audio.speakerPin = PIN_AUDIO_OUT; // PWM output is pin 9 for a UNO
-  audio.quality(1);                 // Use oversampling function for best quality
+  audio.quality(1);   
+  audio.setVolume(4); // Use oversampling function for best quality
   // Configure the "product"
   lights.begin(PIN_LIGHTS);
   // Configure the PIR
