@@ -63,15 +63,16 @@
 
 // SD Card (stores the audio clips)
 
-#define PIN_SD_CHIP_SELECT 10 // Physical Pin 16
+#define PIN_SD_CHIP_SELECT 8  // Physical Pin 14
 #define PIN_SD_DATA_IN 11     // Physical Pin 17
 #define PIN_SD_DATA_OUT 12    // Physical Pin 18
 #define PIN_SD_CLOCK 13       // Physical Pin 19
 
 // RGB LED Eye
 
-#define PIN_RGB_EYE_DATA 5    // Physical Pin 11
-#define PIN_RGB_EYE_CLOCK 6   // Physical Pin 12
+#define PIN_PWM_RED   3       // Physical Pin 5
+#define PIN_PWM_GREEN 5       // Physical Pin 11
+#define PIN_PWM_BLUE  6       // Physical Pin 12
 
 // Speaker
 
@@ -79,7 +80,7 @@
 
 // Lights
 
-#define PIN_LIGHTS 3          // Physical Pin 5
+#define PIN_LIGHTS 10         // Physical Pin 16 (DISABLE_SPEAKER2 must be defined in TMRPcm's pcmConfig.h)
 
 // PIR
 
@@ -95,47 +96,34 @@
 
 // Classes (split files later)
 
-/* RGBLED - A quick class for driving RGB LEDs via a WS-something chip */
-/* The WS-Whatever chip can handle data transfer speeds of up to 25MHz, so no delays are needed during data transmission */
-
-#define SIGNAL_DATA_DELAY 0.5
+/* RGBLED - A quick class for driving RGB LEDs via ATMEGA328P PWM Pins */
 
 class RGBLED {
 
   private:
   
-  short _pinClock, _pinData;
-
-  // Private Functions
-
-  /* prepareForData()
-   * The WS-whatever chip requires the clock to drop low for this period to signal new data */
-
-  void prepareForData() {
-    digitalWrite(_pinClock, LOW);
-    delay(SIGNAL_DATA_DELAY);
-  }
-  
-  void cycleClock(){
-    digitalWrite(_pinClock, LOW);
-    digitalWrite(_pinClock, HIGH);
-  }
+  short _pinRed, _pinGreen, _pinBlue;
 
   public:
 
-  void begin(short pinData, short pinClock) {
-    _pinData = pinData;
-    _pinClock = pinClock;
-    pinMode(_pinData, OUTPUT);
-    pinMode(_pinClock, OUTPUT);
+  void begin(short pinRed, short pinGreen, short pinBlue) {
+    _pinRed   = pinRed;
+    _pinGreen = pinGreen;
+    _pinBlue  = pinBlue;
+    pinMode(_pinRed, OUTPUT);
+    pinMode(_pinGreen, OUTPUT);
+    pinMode(_pinBlue, OUTPUT);
+    setColor(0x000000);
   }
 
   void setColor(unsigned long color) {
-    prepareForData();
-    for (int i = 23; i >= 0; i--) {
-      digitalWrite(_pinData, bitRead(color, i));
-      cycleClock();
-    }
+    /* Input is a 24-bit colour. Break into RGB and set PWMs directly */
+    unsigned short red = (color >> 16) & 0xFF;
+    unsigned short green = (color >> 8) & 0xFF;
+    unsigned short blue = color & 0xFF;
+    analogWrite(_pinRed, red);
+    analogWrite(_pinGreen, green);
+    analogWrite(_pinBlue, blue);
     dbgln2(F("Set colour to: "), color);
   }
   
@@ -167,6 +155,7 @@ class PWMPoweredDevice {
 
   void begin(short pin) {
     _pin = pin;
+    pinMode(_pin, OUTPUT);
     _power = 1.0;
     turnOff();
   }
@@ -227,7 +216,7 @@ enum OperationMode {
 
 enum EyeColor {
   ecInitialising = 0xFFFFFF, // A rainbow blotch - it's pretty, but good to see all the LEDs are working
-  ecSleeping = 0x333333, // A dim rainbow blotch
+  ecSleeping = 0xFFFFFF, // A dim rainbow blotch
   ecActive = 0xFF0000, // Hot alert alarm red
   ecSearching = 0xFF00FF, // Purple - are you still there?
   ecAutoSearching = 0x0000FF // Lonely blue
@@ -632,7 +621,7 @@ void setup(){
   // Debugging
   Serial.begin(9600);
   // Configure "THE EYE"
-  eye.begin(PIN_RGB_EYE_CLOCK, PIN_RGB_EYE_DATA);
+  eye.begin(PIN_PWM_RED, PIN_PWM_GREEN, PIN_PWM_BLUE);
   // Configure audio output
   audio.speakerPin = PIN_AUDIO_OUT; // PWM output is pin 9 for a UNO
   audio.quality(1);   
