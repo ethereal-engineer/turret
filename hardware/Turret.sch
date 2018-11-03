@@ -15,7 +15,7 @@ Comment3 ""
 Comment4 ""
 $EndDescr
 $Comp
-L sensors:PIR_Motion_Sensor PIR1
+L Turret-rescue:PIR_Motion_Sensor-sensors PIR1
 U 1 1 5BC198E5
 P 5850 4100
 F 0 "PIR1" H 6228 4497 60  0000 L CNN
@@ -39,12 +39,12 @@ $EndComp
 $Comp
 L power:+5V #PWR01
 U 1 1 5BC19C34
-P 4100 1850
-F 0 "#PWR01" H 4100 1700 50  0001 C CNN
-F 1 "+5V" H 4115 2023 50  0000 C CNN
-F 2 "" H 4100 1850 50  0001 C CNN
-F 3 "" H 4100 1850 50  0001 C CNN
-	1    4100 1850
+P 4100 1500
+F 0 "#PWR01" H 4100 1350 50  0001 C CNN
+F 1 "+5V" H 4100 1650 50  0000 C CNN
+F 2 "" H 4100 1500 50  0001 C CNN
+F 3 "" H 4100 1500 50  0001 C CNN
+	1    4100 1500
 	1    0    0    -1  
 $EndComp
 $Sheet
@@ -70,12 +70,12 @@ $EndComp
 $Comp
 L power:Earth #PWR09
 U 1 1 5BC1AD6D
-P 5400 2250
-F 0 "#PWR09" H 5400 2000 50  0001 C CNN
-F 1 "Earth" H 5400 2100 50  0001 C CNN
-F 2 "" H 5400 2250 50  0001 C CNN
-F 3 "~" H 5400 2250 50  0001 C CNN
-	1    5400 2250
+P 5400 2200
+F 0 "#PWR09" H 5400 1950 50  0001 C CNN
+F 1 "Earth" H 5400 2050 50  0001 C CNN
+F 2 "" H 5400 2200 50  0001 C CNN
+F 3 "~" H 5400 2200 50  0001 C CNN
+	1    5400 2200
 	1    0    0    -1  
 $EndComp
 $Comp
@@ -218,13 +218,9 @@ $EndComp
 Wire Wire Line
 	9150 3000 9150 3250
 Wire Wire Line
-	5400 2200 5400 2250
-Wire Wire Line
 	4700 2500 4900 2500
 Wire Wire Line
-	4900 2500 4900 2100
-Wire Wire Line
-	4900 2100 5500 2100
+	4900 2500 4900 1900
 Wire Wire Line
 	5250 3500 5100 3500
 Wire Wire Line
@@ -336,10 +332,6 @@ Wire Wire Line
 	9100 2700 9100 2900
 Wire Wire Line
 	4700 2700 7250 2700
-Wire Wire Line
-	4100 1850 4100 2100
-Wire Wire Line
-	4100 2100 4200 2100
 Connection ~ 4100 2100
 $Comp
 L power:Earth #PWR02
@@ -551,27 +543,25 @@ Wire Wire Line
 $Comp
 L Connector:Screw_Terminal_01x02 J5
 U 1 1 5BDA5A61
-P 6000 2100
-F 0 "J5" H 6080 2092 50  0000 L CNN
-F 1 "Audio_Out" H 6080 2001 50  0000 L CNN
-F 2 "TerminalBlock:TerminalBlock_bornier-2_P5.08mm" H 6000 2100 50  0001 C CNN
-F 3 "~" H 6000 2100 50  0001 C CNN
-	1    6000 2100
+P 6000 1900
+F 0 "J5" H 6080 1892 50  0000 L CNN
+F 1 "Audio_Out" H 6080 1801 50  0000 L CNN
+F 2 "TerminalBlock:TerminalBlock_bornier-2_P5.08mm" H 6000 1900 50  0001 C CNN
+F 3 "~" H 6000 1900 50  0001 C CNN
+	1    6000 1900
 	1    0    0    -1  
 $EndComp
 $Comp
 L Device:CP C1
 U 1 1 5BDA5C80
-P 5650 2100
-F 0 "C1" V 5905 2100 50  0000 C CNN
-F 1 "100uF" V 5814 2100 50  0000 C CNN
-F 2 "Capacitor_THT:CP_Radial_D5.0mm_P2.50mm" H 5688 1950 50  0001 C CNN
-F 3 "~" H 5650 2100 50  0001 C CNN
-	1    5650 2100
+P 5650 1900
+F 0 "C1" V 5905 1900 50  0000 C CNN
+F 1 "100uF" V 5814 1900 50  0000 C CNN
+F 2 "Capacitor_THT:CP_Radial_D5.0mm_P2.50mm" H 5688 1750 50  0001 C CNN
+F 3 "~" H 5650 1900 50  0001 C CNN
+	1    5650 1900
 	0    -1   -1   0   
 $EndComp
-Wire Wire Line
-	5400 2200 5800 2200
 $Comp
 L Connector:Screw_Terminal_01x03 J8
 U 1 1 5BDB604B
@@ -682,12 +672,12 @@ Wire Wire Line
 Wire Wire Line
 	5150 4950 5400 4950
 $Comp
-L Device:C_Small C?
+L Device:C_Small C4
 U 1 1 5BE18E24
 P 4100 5700
-F 0 "C?" V 3871 5700 50  0000 C CNN
+F 0 "C4" V 3871 5700 50  0000 C CNN
 F 1 "0.1uF" V 3962 5700 50  0000 C CNN
-F 2 "" H 4100 5700 50  0001 C CNN
+F 2 "Capacitor_THT:C_Disc_D3.0mm_W1.6mm_P2.50mm" H 4100 5700 50  0001 C CNN
 F 3 "~" H 4100 5700 50  0001 C CNN
 	1    4100 5700
 	0    1    1    0   
@@ -695,22 +685,22 @@ $EndComp
 Wire Wire Line
 	4000 5700 3550 5700
 $Comp
-L Switch:SW_Push_Dual SW?
+L Switch:SW_Push_Dual SW1
 U 1 1 5BE21EAD
 P 5150 5700
-F 0 "SW?" H 5150 5985 50  0000 C CNN
+F 0 "SW1" H 5150 5985 50  0000 C CNN
 F 1 "Reset" H 5150 5894 50  0000 C CNN
-F 2 "" H 5150 5900 50  0001 C CNN
+F 2 "Button_Switch_THT:SW_PUSH_6mm" H 5150 5900 50  0001 C CNN
 F 3 "" H 5150 5900 50  0001 C CNN
 	1    5150 5700
 	1    0    0    -1  
 $EndComp
 Connection ~ 4950 5700
 $Comp
-L power:Earth #PWR?
+L power:Earth #PWR0105
 U 1 1 5BE267BA
 P 5500 5800
-F 0 "#PWR?" H 5500 5550 50  0001 C CNN
+F 0 "#PWR0105" H 5500 5550 50  0001 C CNN
 F 1 "Earth" H 5500 5650 50  0001 C CNN
 F 2 "" H 5500 5800 50  0001 C CNN
 F 3 "~" H 5500 5800 50  0001 C CNN
@@ -722,10 +712,10 @@ Wire Wire Line
 Wire Wire Line
 	5500 5700 5500 5800
 $Comp
-L Device:CP C?
+L Device:CP C3
 U 1 1 5BE2B886
 P 3100 2100
-F 0 "C?" V 3355 2100 50  0000 C CNN
+F 0 "C3" V 3355 2100 50  0000 C CNN
 F 1 "10uF" V 3264 2100 50  0000 C CNN
 F 2 "Capacitor_THT:CP_Radial_D5.0mm_P2.50mm" H 3138 1950 50  0001 C CNN
 F 3 "~" H 3100 2100 50  0001 C CNN
@@ -738,10 +728,10 @@ Wire Wire Line
 Wire Wire Line
 	2950 2100 2950 1750
 $Comp
-L power:Earth #PWR?
+L power:Earth #PWR0106
 U 1 1 5BE3E72E
 P 2950 2400
-F 0 "#PWR?" H 2950 2150 50  0001 C CNN
+F 0 "#PWR0106" H 2950 2150 50  0001 C CNN
 F 1 "Earth" H 2950 2250 50  0001 C CNN
 F 2 "" H 2950 2400 50  0001 C CNN
 F 3 "~" H 2950 2400 50  0001 C CNN
@@ -752,12 +742,12 @@ Wire Wire Line
 	2950 2100 2950 2400
 Connection ~ 2950 2100
 $Comp
-L Device:C_Small C?
+L Device:C_Small C2
 U 1 1 5BE435C7
 P 3100 1750
-F 0 "C?" V 2871 1750 50  0000 C CNN
+F 0 "C2" V 2871 1750 50  0000 C CNN
 F 1 "0.01uF" V 2962 1750 50  0000 C CNN
-F 2 "" H 3100 1750 50  0001 C CNN
+F 2 "Capacitor_THT:C_Disc_D3.0mm_W1.6mm_P2.50mm" H 3100 1750 50  0001 C CNN
 F 3 "~" H 3100 1750 50  0001 C CNN
 	1    3100 1750
 	0    1    1    0   
@@ -767,12 +757,12 @@ Wire Wire Line
 Wire Wire Line
 	3200 1750 3250 1750
 $Comp
-L Device:C_Small C?
+L Device:C_Small C7
 U 1 1 5BE582E6
 P 9250 2400
-F 0 "C?" V 9021 2400 50  0000 C CNN
+F 0 "C7" V 9021 2400 50  0000 C CNN
 F 1 "0.1uF" V 9112 2400 50  0000 C CNN
-F 2 "" H 9250 2400 50  0001 C CNN
+F 2 "Capacitor_THT:C_Disc_D3.0mm_W1.6mm_P2.50mm" H 9250 2400 50  0001 C CNN
 F 3 "~" H 9250 2400 50  0001 C CNN
 	1    9250 2400
 	0    1    1    0   
@@ -781,10 +771,10 @@ Connection ~ 9150 2400
 Wire Wire Line
 	9150 2400 9150 2300
 $Comp
-L power:Earth #PWR?
+L power:Earth #PWR0107
 U 1 1 5BE58414
 P 9550 2300
-F 0 "#PWR?" H 9550 2050 50  0001 C CNN
+F 0 "#PWR0107" H 9550 2050 50  0001 C CNN
 F 1 "Earth" H 9550 2150 50  0001 C CNN
 F 2 "" H 9550 2300 50  0001 C CNN
 F 3 "~" H 9550 2300 50  0001 C CNN
@@ -795,6 +785,91 @@ Wire Wire Line
 	9350 2400 9350 2300
 Wire Wire Line
 	9350 2300 9550 2300
-Text Notes 3300 1350 0    50   ~ 0
-Remaining from breadboard changes: \n* AVcc low-pass filter (and it wasn't connected to Vcc at all! Investigate!\n* Audio low-pass filter and capacitor (then to amp)
+Text Notes 3300 1200 0    50   ~ 0
+Remaining from breadboard changes: \n* Verify AVcc low-pass filter wiring and values (and it wasn’t connected to Vcc at all! Investigate!\n* Verify audio low-pass filter and capacitor (pre-amp)\n* Use a micro button switch (have heaps) for reset button
+$Comp
+L Device:R_US R2
+U 1 1 5BDDBD8B
+P 4250 1650
+F 0 "R2" V 4150 1600 50  0000 L CNN
+F 1 "1k" V 4350 1600 50  0000 L CNN
+F 2 "Resistor_THT:R_Axial_DIN0204_L3.6mm_D1.6mm_P7.62mm_Horizontal" V 4290 1640 50  0001 C CNN
+F 3 "~" H 4250 1650 50  0001 C CNN
+	1    4250 1650
+	0    1    1    0   
+$EndComp
+$Comp
+L Device:C_Small C5
+U 1 1 5BDDC214
+P 4500 1750
+F 0 "C5" H 4300 1850 50  0000 C CNN
+F 1 "0.1uF" H 4300 1750 50  0000 C CNN
+F 2 "Capacitor_THT:C_Disc_D3.0mm_W1.6mm_P2.50mm" H 4500 1750 50  0001 C CNN
+F 3 "~" H 4500 1750 50  0001 C CNN
+	1    4500 1750
+	-1   0    0    1   
+$EndComp
+$Comp
+L power:Earth #PWR0108
+U 1 1 5BE00368
+P 4500 1900
+F 0 "#PWR0108" H 4500 1650 50  0001 C CNN
+F 1 "Earth" H 4500 1750 50  0001 C CNN
+F 2 "" H 4500 1900 50  0001 C CNN
+F 3 "~" H 4500 1900 50  0001 C CNN
+	1    4500 1900
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	4400 1650 4500 1650
+Wire Wire Line
+	4500 1850 4500 1900
+Wire Wire Line
+	4500 1650 4850 1650
+Wire Wire Line
+	4850 1650 4850 2100
+Wire Wire Line
+	4850 2100 4200 2100
+Connection ~ 4500 1650
+Connection ~ 4100 1650
+Wire Wire Line
+	4100 1650 4100 2100
+Wire Wire Line
+	4100 1500 4100 1650
+$Comp
+L Device:R_US R5
+U 1 1 5BE206D6
+P 5050 1900
+F 0 "R5" V 4950 1850 50  0000 L CNN
+F 1 "1k" V 5150 1850 50  0000 L CNN
+F 2 "Resistor_THT:R_Axial_DIN0204_L3.6mm_D1.6mm_P7.62mm_Horizontal" V 5090 1890 50  0001 C CNN
+F 3 "~" H 5050 1900 50  0001 C CNN
+	1    5050 1900
+	0    1    1    0   
+$EndComp
+$Comp
+L Device:C_Small C6
+U 1 1 5BE206DC
+P 5250 2000
+F 0 "C6" H 5050 2100 50  0000 C CNN
+F 1 "0.1uF" H 5050 2000 50  0000 C CNN
+F 2 "Capacitor_THT:C_Disc_D3.0mm_W1.6mm_P2.50mm" H 5250 2000 50  0001 C CNN
+F 3 "~" H 5250 2000 50  0001 C CNN
+	1    5250 2000
+	-1   0    0    1   
+$EndComp
+Wire Wire Line
+	5250 1900 5500 1900
+Wire Wire Line
+	5250 2100 5400 2100
+Wire Wire Line
+	5400 2100 5400 2200
+Wire Wire Line
+	5800 2000 5800 2100
+Wire Wire Line
+	5800 2100 5400 2100
+Connection ~ 5400 2100
+Wire Wire Line
+	5200 1900 5250 1900
+Connection ~ 5250 1900
 $EndSCHEMATC
