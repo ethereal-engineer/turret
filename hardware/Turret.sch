@@ -118,10 +118,10 @@ S 5400 4650 550  500
 U 5BCB1E2A
 F0 "RGBLED" 50
 F1 "RGBLED.sch" 50
-F2 "VCC" I L 5400 4750 50 
-F3 "GND" I L 5400 5050 50 
-F4 "DIN" I L 5400 4950 50 
-F5 "CLK" I L 5400 4850 50 
+F2 "GND" I L 5400 5050 50 
+F3 "PWM_BLUE" I L 5400 4950 50 
+F4 "PWM_GREEN" I L 5400 4850 50 
+F5 "PWM_RED" I L 5400 4750 50 
 $EndSheet
 $Comp
 L power:Earth #PWR07
@@ -134,21 +134,6 @@ F 3 "~" H 5250 5300 50  0001 C CNN
 	1    5250 5300
 	1    0    0    -1  
 $EndComp
-$Comp
-L power:+5V #PWR06
-U 1 1 5BCB6F5D
-P 5250 4650
-F 0 "#PWR06" H 5250 4500 50  0001 C CNN
-F 1 "+5V" H 5265 4823 50  0000 C CNN
-F 2 "" H 5250 4650 50  0001 C CNN
-F 3 "" H 5250 4650 50  0001 C CNN
-	1    5250 4650
-	1    0    0    -1  
-$EndComp
-Wire Wire Line
-	5250 4650 5250 4750
-Wire Wire Line
-	5250 4750 5400 4750
 Wire Wire Line
 	5250 5300 5250 5050
 Wire Wire Line
@@ -208,8 +193,6 @@ F 3 "~" H 5750 4200 50  0001 C CNN
 	1    5750 4200
 	1    0    0    -1  
 $EndComp
-Wire Wire Line
-	4700 2600 7400 2600
 $Comp
 L power:+3.3V #PWR018
 U 1 1 5BCF20A5
@@ -261,28 +244,6 @@ Wire Wire Line
 Wire Wire Line
 	5600 4100 5850 4100
 Wire Wire Line
-	4700 4600 5150 4600
-Wire Wire Line
-	5150 4600 5150 4850
-Wire Wire Line
-	5150 4850 5400 4850
-Wire Wire Line
-	4700 4700 5050 4700
-Wire Wire Line
-	5050 4700 5050 4950
-Wire Wire Line
-	5050 4950 5400 4950
-Wire Wire Line
-	4700 4400 5950 4400
-Wire Wire Line
-	5950 4400 5950 4550
-Wire Wire Line
-	5950 4550 6550 4550
-Wire Wire Line
-	6550 4550 6550 5350
-Wire Wire Line
-	6550 5350 6700 5350
-Wire Wire Line
 	4700 3300 5000 3300
 Wire Wire Line
 	5000 3300 5000 3600
@@ -331,7 +292,7 @@ Wire Wire Line
 Wire Wire Line
 	9300 2800 9150 2800
 Wire Wire Line
-	9150 2800 9150 2300
+	9150 2800 9150 2400
 $Comp
 L power:+3.3V #PWR017
 U 1 1 5BD2B20C
@@ -444,10 +405,6 @@ Wire Wire Line
 	8700 3450 8250 3450
 Connection ~ 8250 3450
 Wire Wire Line
-	7400 2600 7400 2750
-Wire Wire Line
-	7400 2750 7800 2750
-Wire Wire Line
 	7250 2700 7250 2850
 Wire Wire Line
 	7250 2850 7800 2850
@@ -503,7 +460,7 @@ Wire Wire Line
 Wire Wire Line
 	4950 4100 4950 5700
 Wire Wire Line
-	4950 5700 3550 5700
+	4950 5700 4200 5700
 Wire Wire Line
 	3550 5700 3550 5850
 Connection ~ 4800 3900
@@ -548,7 +505,6 @@ F 3 "~" H 6700 5500 50  0001 C CNN
 	1    6700 5500
 	1    0    0    -1  
 $EndComp
-Connection ~ 6700 5350
 Wire Wire Line
 	6700 5650 7000 5650
 Connection ~ 7000 5650
@@ -696,4 +652,149 @@ F 3 "~" H 7150 4250 50  0001 C CNN
 $EndComp
 Wire Wire Line
 	7150 4250 7150 4100
+Wire Wire Line
+	4700 2400 7550 2400
+Wire Wire Line
+	7550 2400 7550 2750
+Wire Wire Line
+	7550 2750 7800 2750
+Wire Wire Line
+	6700 5350 6700 2600
+Wire Wire Line
+	6700 2600 4700 2600
+Connection ~ 6700 5350
+Wire Wire Line
+	4700 4400 5250 4400
+Wire Wire Line
+	5250 4400 5250 4750
+Wire Wire Line
+	5250 4750 5400 4750
+Wire Wire Line
+	4700 4600 5200 4600
+Wire Wire Line
+	5200 4600 5200 4850
+Wire Wire Line
+	5200 4850 5400 4850
+Wire Wire Line
+	4700 4700 5150 4700
+Wire Wire Line
+	5150 4700 5150 4950
+Wire Wire Line
+	5150 4950 5400 4950
+$Comp
+L Device:C_Small C?
+U 1 1 5BE18E24
+P 4100 5700
+F 0 "C?" V 3871 5700 50  0000 C CNN
+F 1 "0.1uF" V 3962 5700 50  0000 C CNN
+F 2 "" H 4100 5700 50  0001 C CNN
+F 3 "~" H 4100 5700 50  0001 C CNN
+	1    4100 5700
+	0    1    1    0   
+$EndComp
+Wire Wire Line
+	4000 5700 3550 5700
+$Comp
+L Switch:SW_Push_Dual SW?
+U 1 1 5BE21EAD
+P 5150 5700
+F 0 "SW?" H 5150 5985 50  0000 C CNN
+F 1 "Reset" H 5150 5894 50  0000 C CNN
+F 2 "" H 5150 5900 50  0001 C CNN
+F 3 "" H 5150 5900 50  0001 C CNN
+	1    5150 5700
+	1    0    0    -1  
+$EndComp
+Connection ~ 4950 5700
+$Comp
+L power:Earth #PWR?
+U 1 1 5BE267BA
+P 5500 5800
+F 0 "#PWR?" H 5500 5550 50  0001 C CNN
+F 1 "Earth" H 5500 5650 50  0001 C CNN
+F 2 "" H 5500 5800 50  0001 C CNN
+F 3 "~" H 5500 5800 50  0001 C CNN
+	1    5500 5800
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	5350 5700 5500 5700
+Wire Wire Line
+	5500 5700 5500 5800
+$Comp
+L Device:CP C?
+U 1 1 5BE2B886
+P 3100 2100
+F 0 "C?" V 3355 2100 50  0000 C CNN
+F 1 "10uF" V 3264 2100 50  0000 C CNN
+F 2 "Capacitor_THT:CP_Radial_D5.0mm_P2.50mm" H 3138 1950 50  0001 C CNN
+F 3 "~" H 3100 2100 50  0001 C CNN
+	1    3100 2100
+	0    1    1    0   
+$EndComp
+Connection ~ 3250 2100
+Wire Wire Line
+	3250 2100 3250 1750
+Wire Wire Line
+	2950 2100 2950 1750
+$Comp
+L power:Earth #PWR?
+U 1 1 5BE3E72E
+P 2950 2400
+F 0 "#PWR?" H 2950 2150 50  0001 C CNN
+F 1 "Earth" H 2950 2250 50  0001 C CNN
+F 2 "" H 2950 2400 50  0001 C CNN
+F 3 "~" H 2950 2400 50  0001 C CNN
+	1    2950 2400
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	2950 2100 2950 2400
+Connection ~ 2950 2100
+$Comp
+L Device:C_Small C?
+U 1 1 5BE435C7
+P 3100 1750
+F 0 "C?" V 2871 1750 50  0000 C CNN
+F 1 "0.01uF" V 2962 1750 50  0000 C CNN
+F 2 "" H 3100 1750 50  0001 C CNN
+F 3 "~" H 3100 1750 50  0001 C CNN
+	1    3100 1750
+	0    1    1    0   
+$EndComp
+Wire Wire Line
+	2950 1750 3000 1750
+Wire Wire Line
+	3200 1750 3250 1750
+$Comp
+L Device:C_Small C?
+U 1 1 5BE582E6
+P 9250 2400
+F 0 "C?" V 9021 2400 50  0000 C CNN
+F 1 "0.1uF" V 9112 2400 50  0000 C CNN
+F 2 "" H 9250 2400 50  0001 C CNN
+F 3 "~" H 9250 2400 50  0001 C CNN
+	1    9250 2400
+	0    1    1    0   
+$EndComp
+Connection ~ 9150 2400
+Wire Wire Line
+	9150 2400 9150 2300
+$Comp
+L power:Earth #PWR?
+U 1 1 5BE58414
+P 9550 2300
+F 0 "#PWR?" H 9550 2050 50  0001 C CNN
+F 1 "Earth" H 9550 2150 50  0001 C CNN
+F 2 "" H 9550 2300 50  0001 C CNN
+F 3 "~" H 9550 2300 50  0001 C CNN
+	1    9550 2300
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	9350 2400 9350 2300
+Wire Wire Line
+	9350 2300 9550 2300
+Text Notes 3300 1350 0    50   ~ 0
+Remaining from breadboard changes: \n* AVcc low-pass filter (and it wasn't connected to Vcc at all! Investigate!\n* Audio low-pass filter and capacitor (then to amp)
 $EndSCHEMATC
