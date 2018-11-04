@@ -155,7 +155,7 @@ U 1 1 5BCC7AA6
 P 9750 3050
 F 0 "SD1" H 10278 3046 50  0000 L CNN
 F 1 "SD_Card" H 10278 2955 50  0000 L CNN
-F 2 "Connector_PinSocket_2.54mm:PinSocket_1x11_P2.54mm_Vertical" H 9750 3050 50  0001 C CNN
+F 2 "turret:SD_CARD_Breakout" H 9750 3050 50  0001 C CNN
 F 3 "http://portal.fciconnect.com/Comergent//fci/drawing/10067847.pdf" H 9750 3050 50  0001 C CNN
 	1    9750 3050
 	1    0    0    -1  
@@ -420,13 +420,9 @@ Connection ~ 4100 5150
 Wire Wire Line
 	4100 5150 4100 5250
 Wire Wire Line
-	3150 5850 3150 2400
-Wire Wire Line
-	3150 2400 3500 2400
-Wire Wire Line
 	3250 5850 3250 2100
 Wire Wire Line
-	3250 2100 4100 2100
+	3250 2100 3500 2100
 Wire Wire Line
 	3350 5850 3350 5450
 Wire Wire Line
@@ -677,7 +673,7 @@ U 1 1 5BE18E24
 P 4100 5700
 F 0 "C4" V 3871 5700 50  0000 C CNN
 F 1 "0.1uF" V 3962 5700 50  0000 C CNN
-F 2 "Capacitor_THT:C_Disc_D3.0mm_W1.6mm_P2.50mm" H 4100 5700 50  0001 C CNN
+F 2 "Capacitor_THT:C_Disc_D7.5mm_W5.0mm_P7.50mm" H 4100 5700 50  0001 C CNN
 F 3 "~" H 4100 5700 50  0001 C CNN
 	1    4100 5700
 	0    1    1    0   
@@ -690,7 +686,7 @@ U 1 1 5BE21EAD
 P 5150 5700
 F 0 "SW1" H 5150 5985 50  0000 C CNN
 F 1 "Reset" H 5150 5894 50  0000 C CNN
-F 2 "Button_Switch_THT:SW_PUSH_6mm" H 5150 5900 50  0001 C CNN
+F 2 "turret:SW_PUSH_6mm" H 5150 5900 50  0001 C CNN
 F 3 "" H 5150 5900 50  0001 C CNN
 	1    5150 5700
 	1    0    0    -1  
@@ -870,4 +866,22 @@ Connection ~ 5400 2100
 Wire Wire Line
 	5200 1900 5250 1900
 Connection ~ 5250 1900
+Wire Wire Line
+	3500 2400 3500 2100
+Connection ~ 3500 2100
+Wire Wire Line
+	3500 2100 4100 2100
+$Comp
+L power:+3.3V #PWR0109
+U 1 1 5BE0DF20
+P 3150 5550
+F 0 "#PWR0109" H 3150 5400 50  0001 C CNN
+F 1 "+3.3V" H 3165 5723 50  0000 C CNN
+F 2 "" H 3150 5550 50  0001 C CNN
+F 3 "" H 3150 5550 50  0001 C CNN
+	1    3150 5550
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	3150 5850 3150 5550
 $EndSCHEMATC

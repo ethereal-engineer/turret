@@ -26,7 +26,7 @@ U 1 1 5BC3DC65
 P 2650 1550
 F 0 "CDS1" H 2720 1550 50  0000 L CNN
 F 1 "?" H 2720 1505 50  0001 L CNN
-F 2 "OptoDevice:R_LDR_D6.4mm_P3.4mm_Vertical" V 2825 1550 50  0001 C CNN
+F 2 "OptoDevice:R_LDR_4.9x4.2mm_P2.54mm_Vertical" V 2825 1550 50  0001 C CNN
 F 3 "http://cdn-reichelt.de/documents/datenblatt/A500/A106012.pdf" H 2650 1500 50  0001 C CNN
 	1    2650 1550
 	1    0    0    -1  
