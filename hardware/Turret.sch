@@ -685,7 +685,7 @@ $EndComp
 Wire Wire Line
 	4000 5700 3550 5700
 $Comp
-L Switch:SW_Push_Dual SW1
+L Switch:SW_Push SW1
 U 1 1 5BE21EAD
 P 5150 5700
 F 0 "SW1" H 5150 5985 50  0000 C CNN
@@ -785,8 +785,6 @@ Wire Wire Line
 	9350 2400 9350 2300
 Wire Wire Line
 	9350 2300 9550 2300
-Text Notes 3300 1200 0    50   ~ 0
-Remaining from breadboard changes: \n* Verify AVcc low-pass filter wiring and values (and it wasn’t connected to Vcc at all! Investigate!\n* Verify audio low-pass filter and capacitor (pre-amp)\n* Use a micro button switch (have heaps) for reset button
 $Comp
 L Device:R_US R2
 U 1 1 5BDDBD8B
@@ -852,7 +850,7 @@ L Device:C_Small C6
 U 1 1 5BE206DC
 P 5250 2000
 F 0 "C6" H 5050 2100 50  0000 C CNN
-F 1 "0.1uF" H 5050 2000 50  0000 C CNN
+F 1 "0.01uF" H 5050 2000 50  0000 C CNN
 F 2 "Capacitor_THT:C_Disc_D3.0mm_W1.6mm_P2.50mm" H 5250 2000 50  0001 C CNN
 F 3 "~" H 5250 2000 50  0001 C CNN
 	1    5250 2000
