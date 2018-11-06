@@ -420,8 +420,6 @@ Connection ~ 4100 5150
 Wire Wire Line
 	4100 5150 4100 5250
 Wire Wire Line
-	3250 5850 3250 2100
-Wire Wire Line
 	3250 2100 3500 2100
 Wire Wire Line
 	3350 5850 3350 5450
@@ -871,17 +869,4 @@ Wire Wire Line
 Connection ~ 3500 2100
 Wire Wire Line
 	3500 2100 4100 2100
-$Comp
-L power:+3.3V #PWR0109
-U 1 1 5BE0DF20
-P 3150 5550
-F 0 "#PWR0109" H 3150 5400 50  0001 C CNN
-F 1 "+3.3V" H 3165 5723 50  0000 C CNN
-F 2 "" H 3150 5550 50  0001 C CNN
-F 3 "" H 3150 5550 50  0001 C CNN
-	1    3150 5550
-	1    0    0    -1  
-$EndComp
-Wire Wire Line
-	3150 5850 3150 5550
 $EndSCHEMATC
