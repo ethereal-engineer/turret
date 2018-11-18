@@ -17,7 +17,7 @@
 // Debug settings panel
 #ifdef DEBUG
   //#define LOG_AMBIENT_LIGHT_LEVEL
-  #define USE_SHORT_TIMEOUTS
+  //#define USE_SHORT_TIMEOUTS
 #endif
 
 // Debug logging macro
@@ -319,8 +319,8 @@ unsigned long stateTimeout[tsCount] = {
 unsigned long stateTimeout[tsCount] = {
     MINS_TO_MS(0),    // tsInitialising
     MINS_TO_MS(15),   // tsSleeping
-    MINS_TO_MS(5),    // tsActive
-    MINS_TO_MS(1),    // tsSearching   
+    MINS_TO_MS(2),    // tsActive
+    SECS_TO_MS(30),   // tsSearching   
     SECS_TO_MS(10),   // tsAutoSearching
 };
 
