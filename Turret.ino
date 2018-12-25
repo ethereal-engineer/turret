@@ -319,7 +319,7 @@ unsigned long stateTimeout[tsCount] = {
 unsigned long stateTimeout[tsCount] = {
     MINS_TO_MS(0),    // tsInitialising
     MINS_TO_MS(15),   // tsSleeping
-    MINS_TO_MS(2),    // tsActive
+    SECS_TO_MS(90),    // tsActive
     SECS_TO_MS(30),   // tsSearching   
     SECS_TO_MS(10),   // tsAutoSearching
 };
