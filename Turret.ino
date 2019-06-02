@@ -2,6 +2,8 @@
 #include <SD.h>
 #include <TMRpcm.h>           // Audio library
 
+// If lights come on with audio, edit pcmConfig.h and uncomment #define DISABLE_SPEAKER2
+
 #define __ASSERT_USE_STDERR
 
 #include <assert.h>
@@ -319,8 +321,8 @@ unsigned long stateTimeout[tsCount] = {
 unsigned long stateTimeout[tsCount] = {
     MINS_TO_MS(0),    // tsInitialising
     MINS_TO_MS(15),   // tsSleeping
-    SECS_TO_MS(90),    // tsActive
-    SECS_TO_MS(30),   // tsSearching   
+    MINS_TO_MS(5),    // tsActive
+    MINS_TO_MS(1),    // tsSearching   
     SECS_TO_MS(10),   // tsAutoSearching
 };
 
