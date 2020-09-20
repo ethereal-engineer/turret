@@ -1,3 +1,5 @@
+#include <Arduino.h>
+
 #include <EnableInterrupt.h>  // Cleaner ways to do things
 #include <SD.h>
 #include <TMRpcm.h>           // Audio library
@@ -331,6 +333,25 @@ unsigned long stateTimeout[tsCount] = {
 /* A special reset function for debugging etc */
 void(* resetFunc) (void) = 0; // declare reset function @ address 0
 
+// Ambient Light Level Measurement
+
+unsigned int getAmbientLightLevel() {
+  unsigned int level = analogRead(PIN_ANALOG_AMBIENT_LIGHT);
+  #ifdef DEBUG
+    if (ambientLightLevelOverride != MAX_UNSIGNED_INT) {
+      level = ambientLightLevelOverride;
+      #ifdef LOG_AMBIENT_LIGHT_LEVEL
+        dbgln2(F("Overrode ambient light level with value: "), level);
+      #endif
+    } else {
+      #ifdef LOG_AMBIENT_LIGHT_LEVEL
+        dbgln2(F("Got ambient light level: "), level);
+      #endif
+    }
+  #endif
+  return level;
+}
+
 /* randomize - Shuffle up our random order */
 
 void randomize() {
@@ -503,23 +524,32 @@ void playSoundForStateDidChange(TurretState fromState, TurretState toState) {
   }
 }
 
-// Ambient Light Level Measurement
+// Mode Change Functions
 
-unsigned int getAmbientLightLevel() {
-  unsigned int level = analogRead(PIN_ANALOG_AMBIENT_LIGHT);
-  #ifdef DEBUG
-    if (ambientLightLevelOverride != MAX_UNSIGNED_INT) {
-      level = ambientLightLevelOverride;
-      #ifdef LOG_AMBIENT_LIGHT_LEVEL
-        dbgln2(F("Overrode ambient light level with value: "), level);
-      #endif
-    } else {
-      #ifdef LOG_AMBIENT_LIGHT_LEVEL
-        dbgln2(F("Got ambient light level: "), level);
-      #endif
-    }
-  #endif
-  return level;
+void updateLightsForStateDidChange(TurretState fromState, TurretState toState) {
+  // If state is active and it's night time,
+  // light 'em up!
+  if (operationMode == omDay && lights.isOn()) {
+    lights.turnOff();
+  } else if (toState == tsActive && operationMode == omNight && !lights.isOn()) {
+    playRandomSoundAtPath(FPSTR(soundPathDeploy));
+    lights.turnOn();
+  } else if (toState == tsSleeping) {
+    lights.turnOff();
+  }
+  // Causes noise due to PWM at the moment - will filter then restore
+  // LATER - improve this conditional blargh
+  // Light dimming - dim when searching, full bright when active
+  if (toState == tsSearching) {
+    lights.setPower(0.5);
+  } else {
+    lights.setPower(1.0);
+  }
+}
+
+void updateLightsForOperationModeDidChange(OperationMode fromMode, OperationMode toMode) {
+  // Trigger state update with current state - a bit yuck (clean it later)
+  updateLightsForStateDidChange(turretState, turretState);
 }
 
 // Callback Functions
@@ -558,35 +588,6 @@ void operationModeWillChange(OperationMode toMode) {
 
 void operationModeDidChange(OperationMode fromMode) {
   updateLightsForOperationModeDidChange(fromMode, operationMode);
-}
-
-// Mode Change Functions
-
-void updateLightsForOperationModeDidChange(OperationMode fromMode, OperationMode toMode) {
-  // Trigger state update with current state - a bit yuck (clean it later)
-  updateLightsForStateDidChange(turretState, turretState);
-}
-
-void updateLightsForStateDidChange(TurretState fromState, TurretState toState) {
-  // If state is active and it's night time,
-  // light 'em up!
-  if (operationMode == omDay && lights.isOn()) {
-    lights.turnOff();
-  } else if (toState == tsActive && operationMode == omNight && !lights.isOn()) {
-    playRandomSoundAtPath(FPSTR(soundPathDeploy));
-    lights.turnOn();
-  } else if (toState == tsSleeping) {
-    lights.turnOff();
-  }
-
-// Causes noise due to PWM at the moment - will filter then restore
-  // LATER - improve this conditional blargh
-  // Light dimming - dim when searching, full bright when active
-  if (toState == tsSearching) {
-    lights.setPower(0.5);
-  } else {
-    lights.setPower(1.0);
-  }
 }
 
 bool shouldTimeoutSansMotion() {
