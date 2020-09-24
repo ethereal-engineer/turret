@@ -41,9 +41,6 @@
   #define dbgln3(x, y, z) dbg3(x, y, z)
 #endif
 
-// Main loop delay
-#define MAIN_LOOP_DELAY 500
-
 // Helper debugging macro
 #define repeat(n, x) for (int _i = 0; _i < n; _i++) { x; }
 
@@ -52,11 +49,12 @@
 #define SECS_TO_MS(secs) secs * 1000
 
 // There might be a proper one - check later
-#define MAX_UNSIGNED_LONG 0xFFFFFFFF
+#define MAX_UNSIGNED_LONG 0xFFFFFFFF // it's UINT32_MAX or something
 #define MAX_UNSIGNED_INT 0xFFFF
 #define MAX_PATH_LENGTH 16
 // Minimum light level reading that keeps us in day mode (0-1024)
 #define MINIMUM_DAY_MODE_AMBIENT_LIGHT_LEVEL 100
+// TOOD: make this into two levels - one to switch, and one to switch back - so there's no looping
 
 // Light level override for debugging
 #ifdef DEBUG
@@ -717,8 +715,6 @@ void loop(){
     case tsCount: //CRUD - fixme
       break;
   }
-  
-  delay(MAIN_LOOP_DELAY);
   
   #ifdef DEBUG
     if (Serial.available()) {
