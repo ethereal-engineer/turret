@@ -53,7 +53,8 @@
 #define MAX_UNSIGNED_INT 0xFFFF
 #define MAX_PATH_LENGTH 16
 // Minimum light level reading that keeps us in day mode (0-1024)
-#define MINIMUM_DAY_MODE_AMBIENT_LIGHT_LEVEL 100
+#define DAY_TO_NIGHT_LIGHT_LEVEL_THRESHOLD 100
+#define NIGHT_TO_DAY_LIGHT_LEVEL_THRESHOLD 200
 // TOOD: make this into two levels - one to switch, and one to switch back - so there's no looping
 
 // Light level override for debugging
@@ -232,7 +233,7 @@ PWMPoweredDevice  lights; // "Payload" or "product", as the turret calls it - ve
 
 // Time references use internal millis() counter (since last restart) - which should be enough...?
 
-unsigned long timeOfLastStateChange     = MAX_UNSIGNED_LONG; // Used to check how long we've been in this state
+unsigned long timeOfLastStateChange     = UINT32_MAX; // Used to check how long we've been in this state
 unsigned long timeOfLastMotionDetection = 0; // Used to check how long since last motion was detected
 
 // Sound Path strings
@@ -641,10 +642,11 @@ void setup(){
 
 void loop(){  
   // Continuously looping and evaluating which state to enter
-  if (getAmbientLightLevel() >= MINIMUM_DAY_MODE_AMBIENT_LIGHT_LEVEL) {
+  uint16_t level = getAmbientLightLevel();
+  if (level > NIGHT_TO_DAY_LIGHT_LEVEL_THRESHOLD) {
     // add a delay to how often we can change between day and night modes if needed
     enterOperationMode(omDay);
-  } else {
+  } else if (level < DAY_TO_NIGHT_LIGHT_LEVEL_THRESHOLD) {
     enterOperationMode(omNight);
   }
 
