@@ -620,7 +620,7 @@ void enterOperationMode(OperationMode mode) {
 
 void setup(){
   // Debugging
-  Serial.begin(9600);
+  Serial.begin(115200);
   // Configure "THE EYE"
   eye.begin(PIN_PWM_RED, PIN_PWM_GREEN, PIN_PWM_BLUE);
   // Configure audio output
